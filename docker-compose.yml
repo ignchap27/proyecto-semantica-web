@@ -1,0 +1,18 @@
+services:
+  etl:
+    build: .
+    working_dir: /app
+    volumes:
+      # codigo y docs por bind: editar sin reconstruir la imagen
+      - ./scripts:/app/scripts
+      - ./docs:/app/docs
+      - ./const.py:/app/const.py:ro
+      # entrada de solo lectura, no la vamos a tocar nunca
+      - ./data/grupo_5.csv:/app/data/grupo_5.csv:ro
+      # entregables: tienen que sobrevivir en el host
+      - ./data/processed:/app/data/processed
+      # ~30 GB de crudos + la base duckdb; se van con `docker compose down -v`
+      - work:/data
+
+volumes:
+  work:

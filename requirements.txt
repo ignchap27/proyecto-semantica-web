@@ -1,0 +1,4 @@
+duckdb~=1.1
+pandas~=2.2
+rapidfuzz~=3.9
+Unidecode~=1.3
