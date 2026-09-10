@@ -49,13 +49,15 @@ preliminar, informe de máximo 4 páginas y este código reproducible.
 │   ├── informe.md          # entregable de 4 páginas, se redacta en paralelo
 │   └── modelo_conceptual.md
 └── scripts/                # un script por paso, se corren en orden
+    ├── 00_download.py      # baja los dumps a /data/raw y verifica checksums
+    └── 01_extract.py       # saca las 33 tablas que usamos a /data/interim
 ```
 
 ## Requisitos
 
 Solo **Docker**. Nada se instala en la máquina anfitriona.
 
-Espacio en disco: ~7,5 GB de descargas + ~25 GB de TSV extraídos.
+Espacio en disco: 11 GB de descargas + 21 GB de TSV extraídos (medido en la fase B).
 
 ```bash
 docker compose build
@@ -90,7 +92,44 @@ Debe imprimir `100000`.
 
 ### Fase B — Descarga y extracción
 
-_Pendiente._
+```bash
+docker compose run --rm etl python scripts/00_download.py
+docker compose run --rm etl python scripts/01_extract.py
+```
+
+**`00_download.py`** resuelve `fullexport/LATEST` (versión usada: `20260909-002431`), deja
+la versión en `/data/raw/MB_VERSION.txt` y baja a `/data/raw`:
+
+| Archivo | Tamaño | Checksum |
+|---|---|---|
+| `mbdump.tar.bz2` | 7,0 GB | MD5SUMS del servidor |
+| `mbdump-derived.tar.bz2` | 492 MB | MD5SUMS del servidor |
+| 3 × `acousticbrainz-lowlevel-features-20220623-*.tar.zst` | 2,8 GB | `sha256sums` del servidor |
+| `msd-mbid-2016-01-results-ab.csv.bz2` | 13 MB | no publicado; se valida abriendo el bz2 |
+
+Total ~11 GB. Es reejecutable: lo que ya está y cuadra no se vuelve a bajar (revalidar los
+11 GB cuesta ~3,5 min). Si un checksum falla, borra el archivo y sale con error. **Tarda
+unos 40 min** con una conexión de ~4 MB/s, que es lo que da el mirror para el dump core.
+
+**`01_extract.py`** saca de los tarballs solo las 29 tablas del core y las 4 de derived a
+`/data/interim`, y descomprime el mapeo MSD a `/data/interim/msd_mbid.csv`. **Tarda ~14
+min**: 374 s el core, 13 s derived y el resto contando filas para el informe. Deja **21 GB**
+de TSV.
+
+Verificación (la imprime el propio script al terminar: 33 tablas, todas con filas > 0):
+
+```bash
+docker compose run --rm etl bash -c "head -1 /data/interim/artist    | awk -F'\t' '{print NF}'; \
+                                     head -1 /data/interim/recording | awk -F'\t' '{print NF}'"
+```
+
+Debe dar **19** y **9**, que es el número de columnas de esas tablas en el esquema de
+MusicBrainz y lo que tendrá que reproducir el parser del DDL en la fase C.
+
+Filas de las tablas grandes, por si hay que comparar tras un redump: `recording`
+40.126.348 · `track` 57.777.221 · `url` 21.581.393 · `release_country` 13.266.453 ·
+`l_release_url` 10.549.580 · `recording_tag` 7.302.510 · `artist` 2.980.329 ·
+`msd_mbid.csv` 377.406.
 
 ### Fase C — Carga en DuckDB
 

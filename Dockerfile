@@ -11,5 +11,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 ENV PYTHONUNBUFFERED=1
+# para que `python scripts/xx.py` encuentre const.py sin tocar sys.path
+ENV PYTHONPATH=/app
 
 CMD ["bash"]

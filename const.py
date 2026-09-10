@@ -16,7 +16,12 @@ METABRAINZ = "https://data.metabrainz.org/pub/musicbrainz"
 MB_LATEST_URL = f"{METABRAINZ}/data/fullexport/LATEST"
 MB_FULLEXPORT = f"{METABRAINZ}/data/fullexport"
 
+MB_CORE_FILE = "mbdump.tar.bz2"
+MB_DERIVED_FILE = "mbdump-derived.tar.bz2"
+MB_MD5SUMS = "MD5SUMS"
+
 AB_FEATURES = f"{METABRAINZ}/acousticbrainz/dumps/acousticbrainz-lowlevel-features-20220623"
+AB_SHA256SUMS = "sha256sums"
 AB_FEATURE_FILES = [
     "acousticbrainz-lowlevel-features-20220623-lowlevel.tar.zst",
     "acousticbrainz-lowlevel-features-20220623-rhythm.tar.zst",

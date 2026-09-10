@@ -94,3 +94,80 @@ que no hay problema de permisos con los entregables.
 
 Descargar y extraer solo las ~34 tablas necesarias (de las 236 del core), en streaming
 sobre el tar para no materializar los 45 GB completos.
+
+---
+
+## 2026-09-10 — Fase B: descarga y extracción de los dumps
+
+### Qué se hizo
+
+`scripts/00_download.py` (descarga + verificación de checksums) y `scripts/01_extract.py`
+(extracción selectiva de tablas). Resultado: 33 tablas en TSV en `/data/interim` más el
+mapeo MSD→MBID.
+
+### Números medidos
+
+| | |
+|---|---|
+| Versión del dump | `20260909-002431` (resuelta vía `fullexport/LATEST`) |
+| Descargado | 11 GB — core 7,0 GB, derived 492 MB, AB lowlevel 2,8 GB, mapeo MSD 13 MB |
+| Tiempo de descarga | ~40 min (el mirror da ~4 MB/s para el core; los archivos de AB bajan a ~10 MB/s) |
+| Revalidación de checksums | 3,5 min para los 11 GB |
+| Extracción core (29 tablas) | 374 s |
+| Extracción derived (4 tablas) | 13 s |
+| TSV resultantes | 21 GB |
+| Total en el volumen `work` | 32 GB |
+
+Tablas grandes: `track` 57.777.221 filas (7,8 GB) · `recording` 40.126.348 (4,6 GB) ·
+`url` 21.581.393 (2,6 GB) · `release_country` 13.266.453 · `l_release_url` 10.549.580 ·
+`l_recording_work` 7.869.911 · `artist_credit_name` 7.186.104 · `recording_tag` 7.302.510
+· `medium` 6.326.219 · `release` 5.763.531 · `release_group_tag` 5.011.678 · `artist`
+2.980.329.
+
+El mapeo `msd-mbid-2016-01` tiene **377.406 filas**, no las ~250.000 que se estimaron en la
+fase A. Sobre 1.000.000 de ids del MSD sigue siendo un 38 %; la cobertura real sobre
+nuestras 100.000 se mide en la fase D.
+
+### Problemas encontrados
+
+**El mirror se cuelga a mitad de descarga.** La primera corrida se quedó pegada en el
+tercer archivo de AcousticBrainz: 26 MB en 40 minutos, sin error, sin cortar la conexión.
+Hubo que matarla. Se le añadieron a `curl` `--speed-limit 10240 --speed-time 60` (si baja
+de 10 kB/s durante un minuto, aborta) más `--retry 10 --retry-all-errors`, que con `-C -`
+retoma donde iba.
+
+**Reanudar una descarga colgada da un archivo corrupto.** Al reintentar, `curl -C -`
+retomó desde el byte 28.749.824 y el resultado no cuadró con el SHA-256 publicado. Que el
+script verifique *después* de descargar y borre el archivo malo es justo lo que salvó la
+situación: el fallo se vio en 3 minutos y no dos fases más tarde, con la extracción
+reventando por un tar truncado. La segunda descarga, ya completa, cuadró.
+
+**`TIMESTAMP` no está donde parecía.** Se intentó extraer del tar del core para dejar
+constancia de la fecha del dump, pero vive en la raíz del tarball, no dentro de `mbdump/`,
+así que `--strip-components=1` se lo comía y `tar` salía con código 2 tras haber extraído
+correctamente las 29 tablas. Se quitó de la lista: la procedencia ya queda registrada en
+`/data/raw/MB_VERSION.txt`, que escribe `00_download.py` con la versión que resolvió.
+
+**`artist` tiene 19 columnas, no 20.** El dato apuntado en la fase A estaba mal. Verificado
+por partida doble: el `CREATE TABLE artist` del DDL declara 19 columnas (`id` … `end_area`)
+y los TSV dan 19 campos en las 200.000 primeras filas. `recording` sí son 9. Corregido en
+`CLAUDE.md` porque la fase C usa ese número como prueba del parser del DDL.
+
+### Decisiones
+
+**Descargar a disco en vez de extraer en streaming desde la URL.** Era tentador encadenar
+`curl | lbzip2 -dc | tar -x` y ahorrarse los 11 GB de tarballs, pero entonces cualquier
+corte de red obliga a rebajar 7 GB, no hay contra qué comparar el checksum y re-extraer una
+tabla que se olvidó exige repetir la descarga entera. Con lo frágil que resultó ser el
+mirror, fue la decisión correcta.
+
+**Los tarballs se conservan tras extraer.** Ocupan 11 GB, pero re-descargarlos cuesta 40
+minutos y `docker compose down -v` los borra igual.
+
+**Los dumps de AcousticBrainz se bajan ahora y se extraen en la fase E.** Están verificados
+y en disco; su formato interno se resuelve cuando toque.
+
+### Pendiente para la fase C
+
+Parsear `CreateTables.sql` contando paréntesis para sacar las cabeceras (prueba: `artist` =
+19, `recording` = 9) y cargar los TSV en DuckDB.
