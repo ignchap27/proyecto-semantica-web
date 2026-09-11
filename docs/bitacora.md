@@ -377,11 +377,82 @@ documentado) mostró que cada tar.zst trae **un solo CSV gigante** con cabecera:
   Arreglado: se ordena por `submission_offset` (primera submission, reproducible) y se
   excluye la columna de la salida. Costó un rerun de 4 minutos.
 - La cobertura del 56 % es limitación de la fuente (AB congelado en 2022), no del
-  proceso; `songs.csv` conservará las 100.000 filas igualmente.
+  proceso; `songs_final.csv` conservará las 100.000 filas igualmente.
 - Al terminar, el script borra los CSV extraídos (`/data/interim/ab`); los tar.zst
   originales quedan en `/data/raw` por si hay que repetir.
 
 ### Pendiente para la fase F
 
-Exportar `songs.csv` con las 100.000 filas + columnas enriquecidas, modelo conceptual
+Exportar `songs_final.csv` con las 100.000 filas + columnas enriquecidas, modelo conceptual
 y recorte del informe a 4 páginas.
+
+## 2026-09-10 — Fase F: exportación y cierre de entregables
+
+Salió a la primera: `07_export.py` es un solo `COPY` con LEFT JOINs sobre los CSV de
+`data/processed/` (base DuckDB en memoria, sin tocar `mb.duckdb`: las tablas de match
+son temporales y no sobreviven a un `make 03`). Sellos y tags de grabación se agregan
+con `;` antes del join para no multiplicar filas; los joins restantes son 1:1 por
+`track_id` / `artist_mbid`, así que las 100.000 filas están garantizadas por
+construcción.
+
+### Números medidos
+
+| | |
+|---|---|
+| `make 07` | 2 s |
+| `songs_final.csv` | 100.000 filas × 38 columnas |
+| con `recording_mbid` | 80.719 (80,7 %) |
+| con features acústicas | 45.211 (45,2 %) |
+| con sellos | 72.761 |
+| con tags de grabación | 28.271 |
+| `year=0` rellenados con el año de la edición | **24.116 de 45.219** |
+| cobertura final de `anio` | 78.897 (78,9 %) |
+
+`test_export.py` (dentro de `make shell`) verifica: 100.000 filas, `track_id` únicos,
+las 7 columnas originales intactas contra `grupo_5.csv`, coherencia de
+`anio`/`fuente_anio` y que los `recording_mbid` cuadran con `matches.csv`. Pasa.
+
+### Decisiones
+
+- **Año consolidado con procedencia.** `anio` = `year` del MSD si > 0, si no el año de
+  la edición más antigua; `fuente_anio` ∈ {`msd`, `musicbrainz`} registra de dónde
+  salió. El `year` original se conserva intacto.
+- **Qué entra en `songs_final.csv` y qué no.** Entra lo que cabe en una fila por canción
+  (edición, sellos y tags aplanados con `;`, perfil de artista, features). Fuera:
+  `score` del match, mes, tags de release_group y las URLs no-Wikidata — viven en sus
+  CSV en formato largo, que también son entregables.
+- **Modelo conceptual en Mermaid** (`docs/modelo_conceptual.md`): renderiza solo en
+  GitHub, cero dependencias nuevas.
+
+### Cierre de documentos
+
+Informe recortado de 1.913 a ~1.750 palabras (~4 páginas): fuera el aviso de
+construcción, el detalle de extracción duplicado con el README y la sección de retos
+redactada desde las viñetas acumuladas. Nueva sección "Consolidación y entrega" con el
+esquema de `songs_final.csv` y la regla del año. README con la fase F y el árbol actualizado.
+
+
+## 2026-09-10 — Fase F (bis): modelo en Turtle y notebook de completitud
+
+Dos ajustes sobre los entregables ya cerrados.
+
+**Modelo conceptual → RDFS.** El ER en Mermaid se reemplaza por
+`docs/modelo_conceptual.ttl`: el mismo modelo, pero planteado directamente en RDFS con
+sintaxis Turtle. Namespace propio (`sem:`), seis clases (canción, artista, grabación,
+lanzamiento, sello, features acústicas), las relaciones como `rdf:Property` con
+`rdfs:domain`/`rdfs:range`, y cada columna de `songs_final.csv` como propiedad de datos
+con su tipo `xsd`. Los `rdfs:label` llevan el nombre exacto de la columna, así el mapeo
+CSV ↔ modelo se lee sin tabla aparte. Se descartó mezclar vocabularios externos
+(schema.org, Music Ontology): un vocabulario propio es autocontenido y más fácil de
+justificar en el informe. `docs/modelo_conceptual.md` se borró.
+
+**Notebook de completitud** (`notebooks/analisis_completitud.ipynb`): lectura de
+`songs_final.csv` con pandas y tres gráficas básicas con matplotlib — % de dato por
+columna, cobertura por fuente y años recuperados (year=0 del MSD vs `anio`
+consolidado). Se corre con un Jupyter local, no dentro del contenedor: es análisis del
+resultado, no un paso del ETL, y meter jupyter+matplotlib en la imagen la engordaba
+sin necesidad. Se entrega sin ejecutar; los números que imprime son los mismos ya
+medidos en la fase F (80,7 % con grabación, 45,2 % con features, 24.116 años
+recuperados).
+
+Sin problemas: salió a la primera.

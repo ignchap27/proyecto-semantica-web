@@ -1,0 +1,257 @@
+# Modelo conceptual del proyecto, planteado en RDFS.
+# Describe las entidades que quedan materializadas en songs_final.csv y como se
+# relacionan. La cancion es la fila del MSD que nos dieron; todo lo demas viene de
+# MusicBrainz y AcousticBrainz a traves de dos anclas: el MBID del artista (venia
+# en el CSV de entrada) y el MBID de la grabacion (lo resolvio nuestro matching).
+
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix sem:  <http://semantica-web.misis/grupo5/modelo#> .
+
+##### Clases #####
+
+sem:Cancion a rdfs:Class ;
+    rdfs:label "Canción"@es .
+
+sem:Artista a rdfs:Class ;
+    rdfs:label "Artista"@es .
+
+sem:Grabacion a rdfs:Class ;
+    rdfs:label "Grabación"@es .
+
+sem:Lanzamiento a rdfs:Class ;
+    rdfs:label "Lanzamiento"@es .
+
+sem:Sello a rdfs:Class ;
+    rdfs:label "Sello"@es .
+
+sem:FeaturesAcusticas a rdfs:Class ;
+    rdfs:label "Features acústicas"@es .
+
+##### Propiedades de objeto #####
+
+sem:interpretadaPor a rdf:Property ;
+    rdfs:label "interpretada por"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range sem:Artista .
+
+sem:correspondeA a rdf:Property ;
+    rdfs:label "se corresponde con"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range sem:Grabacion .
+
+sem:publicadaEn a rdf:Property ;
+    rdfs:label "publicada en"@es ;
+    rdfs:domain sem:Grabacion ;
+    rdfs:range sem:Lanzamiento .
+
+sem:editadoPor a rdf:Property ;
+    rdfs:label "editado por"@es ;
+    rdfs:domain sem:Lanzamiento ;
+    rdfs:range sem:Sello .
+
+sem:descritaPor a rdf:Property ;
+    rdfs:label "descrita por"@es ;
+    rdfs:domain sem:Grabacion ;
+    rdfs:range sem:FeaturesAcusticas .
+
+##### Canción (columnas del MSD + consolidadas) #####
+
+sem:trackId a rdf:Property ;
+    rdfs:label "track_id"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:string .
+
+sem:titulo a rdf:Property ;
+    rdfs:label "title"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:string .
+
+sem:releaseMsd a rdf:Property ;
+    rdfs:label "release"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:string .
+
+sem:anioMsd a rdf:Property ;
+    rdfs:label "year"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:integer .
+
+sem:duracion a rdf:Property ;
+    rdfs:label "duration"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:float .
+
+sem:anio a rdf:Property ;
+    rdfs:label "anio"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:gYear .
+
+sem:fuenteAnio a rdf:Property ;
+    rdfs:label "fuente_anio"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:string .
+
+##### Grabación #####
+
+sem:recordingMbid a rdf:Property ;
+    rdfs:label "recording_mbid"@es ;
+    rdfs:domain sem:Grabacion ;
+    rdfs:range xsd:string .
+
+sem:metodoMatch a rdf:Property ;
+    rdfs:label "metodo_match"@es ;
+    rdfs:domain sem:Grabacion ;
+    rdfs:range xsd:string .
+
+sem:tagsGrabacion a rdf:Property ;
+    rdfs:label "tags_grabacion"@es ;
+    rdfs:domain sem:Grabacion ;
+    rdfs:range xsd:string .
+
+##### Artista #####
+
+sem:nombre a rdf:Property ;
+    rdfs:label "artist_name"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:string .
+
+sem:artistMbid a rdf:Property ;
+    rdfs:label "artist_mbid"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:string .
+
+sem:tipoArtista a rdf:Property ;
+    rdfs:label "artista_tipo"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:string .
+
+sem:genero a rdf:Property ;
+    rdfs:label "artista_genero"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:string .
+
+sem:area a rdf:Property ;
+    rdfs:label "artista_area"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:string .
+
+sem:anioInicio a rdf:Property ;
+    rdfs:label "artista_anio_inicio"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:gYear .
+
+sem:anioFin a rdf:Property ;
+    rdfs:label "artista_anio_fin"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:gYear .
+
+sem:tagsArtista a rdf:Property ;
+    rdfs:label "artista_tags"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:string .
+
+sem:wikidata a rdf:Property ;
+    rdfs:label "artista_wikidata"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range rdfs:Resource .
+
+##### Lanzamiento #####
+
+sem:releaseMbid a rdf:Property ;
+    rdfs:label "release_mbid"@es ;
+    rdfs:domain sem:Lanzamiento ;
+    rdfs:range xsd:string .
+
+sem:tituloLanzamiento a rdf:Property ;
+    rdfs:label "release_titulo"@es ;
+    rdfs:domain sem:Lanzamiento ;
+    rdfs:range xsd:string .
+
+sem:pais a rdf:Property ;
+    rdfs:label "release_pais"@es ;
+    rdfs:domain sem:Lanzamiento ;
+    rdfs:range xsd:string .
+
+sem:tipoLanzamiento a rdf:Property ;
+    rdfs:label "release_tipo"@es ;
+    rdfs:domain sem:Lanzamiento ;
+    rdfs:range xsd:string .
+
+sem:nombreSello a rdf:Property ;
+    rdfs:label "sellos"@es ;
+    rdfs:domain sem:Sello ;
+    rdfs:range xsd:string .
+
+##### Features acústicas (AcousticBrainz) #####
+
+sem:averageLoudness a rdf:Property ;
+    rdfs:label "average_loudness"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:float .
+
+sem:dynamicComplexity a rdf:Property ;
+    rdfs:label "dynamic_complexity"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:float .
+
+sem:mfccZeroMean a rdf:Property ;
+    rdfs:label "mfcc_zero_mean"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:float .
+
+sem:bpm a rdf:Property ;
+    rdfs:label "bpm"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:float .
+
+sem:bpmPrimerPicoMedia a rdf:Property ;
+    rdfs:label "bpm_histogram_first_peak_bpm_mean"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:float .
+
+sem:bpmPrimerPicoMediana a rdf:Property ;
+    rdfs:label "bpm_histogram_first_peak_bpm_median"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:float .
+
+sem:bpmSegundoPicoMedia a rdf:Property ;
+    rdfs:label "bpm_histogram_second_peak_bpm_mean"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:float .
+
+sem:bpmSegundoPicoMediana a rdf:Property ;
+    rdfs:label "bpm_histogram_second_peak_bpm_median"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:float .
+
+sem:danceability a rdf:Property ;
+    rdfs:label "danceability"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:float .
+
+sem:onsetRate a rdf:Property ;
+    rdfs:label "onset_rate"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:float .
+
+sem:tonalidad a rdf:Property ;
+    rdfs:label "key_key"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:string .
+
+sem:modo a rdf:Property ;
+    rdfs:label "key_scale"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:string .
+
+sem:frecuenciaAfinacion a rdf:Property ;
+    rdfs:label "tuning_frequency"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:float .
+
+sem:desviacionTemperada a rdf:Property ;
+    rdfs:label "tuning_equal_tempered_deviation"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:float .

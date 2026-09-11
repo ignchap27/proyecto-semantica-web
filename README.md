@@ -168,7 +168,36 @@ o algún CSV queda vacío.
 
 ### Fase F — Exportar entregables
 
-_Pendiente._
+```bash
+make 07     # une todo en data/processed/songs_final.csv (~2 s)
+```
+
+Junta las 100.000 canciones originales con todo lo enriquecido en un solo
+`songs_final.csv` de 38 columnas: las 7 del MSD intactas más el MBID de grabación, la
+edición (título, país, tipo), los sellos, el perfil del artista, los tags de la
+grabación y las 14 features acústicas. Ninguna canción se pierde: donde una fuente
+no cubre, las columnas quedan vacías. Además consolida el año: el MSD lo trae a 0
+en 45.219 filas y el año de la edición rellena 24.116 de ellas (la columna
+`fuente_anio` dice de dónde salió cada año).
+
+Debe imprimir 100.000 filas, 80,7 % con `recording_mbid` y 24.116 años rellenados.
+Como en la fase D, hay un script de comprobación que se corre dentro de `make shell`:
+
+```bash
+python scripts/test_export.py
+```
+
+Revienta si `songs_final.csv` no tiene 100.000 filas, si alguna columna original se
+alteró o si el año consolidado es incoherente. El modelo conceptual del resultado
+está en `docs/modelo_conceptual.ttl`, planteado en RDFS (Turtle): las clases son las
+entidades (canción, artista, grabación, lanzamiento, sello, features) y cada columna
+de `songs_final.csv` es una propiedad con su dominio y su tipo de dato.
+
+Hay además un notebook con un análisis de completitud del CSV final,
+`notebooks/analisis_completitud.ipynb`: porcentaje de dato por columna, cobertura por
+fuente y cuántos años se recuperaron. Se abre con cualquier Jupyter local (solo usa
+pandas y matplotlib); es el único pedazo del repo que no corre dentro de Docker,
+porque es análisis del resultado, no parte del ETL.
 
 ## Borrar cosas
 
@@ -198,7 +227,9 @@ sobreviven siempre.
 ├── docs/
 │   ├── bitacora.md         # qué se hizo, qué falló y los números medidos
 │   ├── informe.md          # el entregable de 4 páginas, se escribe en paralelo
-│   └── modelo_conceptual.md
+│   └── modelo_conceptual.ttl   # el modelo, en RDFS
+├── notebooks/
+│   └── analisis_completitud.ipynb  # completitud de songs_final.csv, se corre local
 └── scripts/                # un script por paso, sin frameworks
     ├── 00_download.py
     ├── 01_extract.py
@@ -207,5 +238,7 @@ sobreviven siempre.
     ├── 04_match.py
     ├── 05_enrich.py
     ├── 06_acousticbrainz.py
-    └── test_match.py       # checks de la fase D, se corre dentro de make shell
+    ├── 07_export.py
+    ├── test_match.py       # checks de la fase D, se corre dentro de make shell
+    └── test_export.py      # checks de la fase F, ídem
 ```
