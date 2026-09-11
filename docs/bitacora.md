@@ -171,3 +171,83 @@ y en disco; su formato interno se resuelve cuando toque.
 
 Parsear `CreateTables.sql` contando paréntesis para sacar las cabeceras (prueba: `artist` =
 19, `recording` = 9) y cargar los TSV en DuckDB.
+
+## 2026-09-10 — Interludio: un `Makefile` para no escribir Docker a mano
+
+Los comandos de cada paso eran cuatro líneas de Docker (`rm`, `run -d --name`, `logs -f`,
+`wait`) y el README estaba lleno de ellas. Sustituidos por un `Makefile`: `make 00`,
+`make 01`, `make all`, más `check`, `shell`, `logs-XX`, `clean` y `nuke`.
+
+La lista de pasos no está quemada: sale de `ls scripts/[0-9][0-9]_*.py`, así que al crear
+`scripts/02_headers.py` aparece `make 02` y entra en `make all` sin tocar nada. `make all`
+lleva `.NOTPARALLEL` porque cada paso depende del anterior y un `-j` accidental los
+solaparía.
+
+Se conserva lo que ya funcionaba: contenedor con nombre, sin `--rm`, en segundo plano con
+`-d`, para que Ctrl-C corte el seguimiento de los logs y no el proceso. El `make` termina
+con `exit $(docker wait ...)`, así que un paso fallido rompe la cadena de `make all` en vez
+de seguir con datos a medias.
+
+**Detalle deliberado:** el borrado previo del contenedor usa `docker rm`, no `docker rm
+-f`. Con `-f` un `make 00` distraído mataría una descarga de 40 minutos en curso; sin `-f`
+el borrado falla, `compose` responde `container name is already in use` y el proceso sigue
+vivo. El error feo es la protección.
+
+Verificado: `make check` imprime las cuatro dependencias, los tres binarios y `100001
+data/grupo_5.csv`; `make 00` completo (revalidación de los 11 GB, 2 min 38 s) salió con
+código 0; `make clean` borró los `etl_*` y dejó intactos los contenedores de otros
+proyectos de la máquina.
+
+---
+
+## 2026-09-10 — Auditoría de código + Fase C: cabeceras y carga en DuckDB
+
+### Auditoría
+
+Se revisó todo el código existente buscando complejidad que recortar. Veredicto: ya era
+mínimo; solo cayeron `DURATION_TOLERANCE_S` y `FUZZY_THRESHOLD` de `const.py` (nadie las
+usaba; vuelven en la fase D cuando exista el matching) y se corrigió en `CLAUDE.md` un "20
+columnas" que había quedado de la fase A (son 19).
+
+### Qué se hizo
+
+`scripts/02_headers.py` (parsea `CreateTables.sql` → `headers.json`) y
+`scripts/03_load_duckdb.py` (carga los TSV como tablas en `/data/mb.duckdb`).
+
+### Números medidos
+
+| | |
+|---|---|
+| `make 02` | segundos; 34 tablas, `artist` = 19 columnas, `recording` = 9 |
+| `make 03` | ~16 min total; `track` 344 s, `recording` 254 s, `url` 60 s |
+| Base resultante | `/data/mb.duckdb`, 9,5 GB (los 21 GB de TSV comprimen a menos de la mitad) |
+| RAM durante la carga | ~1 GB estable tras el ajuste (ver abajo) |
+
+Los `count(*)` cuadran uno a uno con los `wc -l` de la fase B. `msd_mbid` da 377.405
+filas (377.406 líneas menos la cabecera).
+
+### Problemas encontrados
+
+**La primera carga se comió toda la RAM del computador.** DuckDB por defecto reclama
+hasta el 80 % de la memoria disponible y, con `preserve_insertion_order` activo (el
+default), bufferea la tabla entera antes de escribirla: con `recording` (4,6 GB) y
+`track` (7,8 GB) eso satura la máquina. Hubo que matar la carga. Arreglo: tres `SET` al
+abrir la conexión — `memory_limit='2GB'`, `preserve_insertion_order=false` y
+`temp_directory` dentro del volumen `work` para que lo que no quepa derrame a disco.
+Con eso el contenedor se quedó en ~1 GB de RAM y la carga completa tardó ~16 min.
+
+**El parser del DDL salió a la primera.** La regla "línea a profundidad 1 que empieza en
+minúscula = columna" esquiva sola los `CHECK (...)` multilínea, porque sus líneas quedan
+a profundidad > 1 y las palabras clave van en mayúsculas. Los `assert` de 19/9 columnas
+pasaron contra el `master` actual; si un futuro cambio de esquema los rompe, el paso 02
+revienta ahí y no en silencio en la fase D.
+
+**Tipos inferidos con el archivo completo.** `read_csv` con la muestra por defecto
+arriesga inferir mal una columna casi-numérica y reventar a mitad de carga; se usa
+`sample_size=-1` (dos pasadas). Es la mitad del coste de los 16 min y se paga una sola
+vez.
+
+### Pendiente para la fase D
+
+Matching `track_id` → recording MBID: candidatos por `artist_mbid`, decisión por título
+normalizado + duración. Probar primero con muestra de 1.000.

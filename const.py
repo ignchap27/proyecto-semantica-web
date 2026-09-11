@@ -83,7 +83,3 @@ MB_DERIVED_TABLES = [
     "recording_tag",
     "release_group_tag",
 ]
-
-# --- matching ---
-DURATION_TOLERANCE_S = 5.0   # recording.length viene en ms, el CSV en segundos
-FUZZY_THRESHOLD = 90         # rapidfuzz token_set_ratio, 0-100
