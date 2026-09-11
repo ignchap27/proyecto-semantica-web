@@ -102,7 +102,7 @@ sobre el tar para no materializar los 45 GB completos.
 ### Qué se hizo
 
 `scripts/00_download.py` (descarga + verificación de checksums) y `scripts/01_extract.py`
-(extracción selectiva de tablas). Resultado: 33 tablas en TSV en `/data/interim` más el
+(extracción selectiva de tablas). Resultado: 34 tablas en TSV en `/data/interim` más el
 mapeo MSD→MBID.
 
 ### Números medidos
@@ -113,7 +113,7 @@ mapeo MSD→MBID.
 | Descargado | 11 GB — core 7,0 GB, derived 492 MB, AB lowlevel 2,8 GB, mapeo MSD 13 MB |
 | Tiempo de descarga | ~40 min (el mirror da ~4 MB/s para el core; los archivos de AB bajan a ~10 MB/s) |
 | Revalidación de checksums | 3,5 min para los 11 GB |
-| Extracción core (29 tablas) | 374 s |
+| Extracción core (30 tablas) | 374 s |
 | Extracción derived (4 tablas) | 13 s |
 | TSV resultantes | 21 GB |
 | Total en el volumen `work` | 32 GB |
@@ -145,7 +145,7 @@ reventando por un tar truncado. La segunda descarga, ya completa, cuadró.
 **`TIMESTAMP` no está donde parecía.** Se intentó extraer del tar del core para dejar
 constancia de la fecha del dump, pero vive en la raíz del tarball, no dentro de `mbdump/`,
 así que `--strip-components=1` se lo comía y `tar` salía con código 2 tras haber extraído
-correctamente las 29 tablas. Se quitó de la lista: la procedencia ya queda registrada en
+correctamente las 30 tablas. Se quitó de la lista: la procedencia ya queda registrada en
 `/data/raw/MB_VERSION.txt`, que escribe `00_download.py` con la versión que resolvió.
 
 **`artist` tiene 19 columnas, no 20.** El dato apuntado en la fase A estaba mal. Verificado
@@ -316,3 +316,72 @@ cascada con `NOT IN (SELECT track_id FROM match)`.
 
 Enriquecimiento: artistas/releases/labels/tags/urls desde MusicBrainz y features desde
 los dumps de AcousticBrainz (extraerlos primero; están descargados desde la fase B).
+
+---
+
+## 2026-09-10 — Fase E: enriquecimiento
+
+### Qué se hizo
+
+`scripts/05_enrich.py` (cinco CSVs desde MusicBrainz) y `scripts/06_acousticbrainz.py`
+(extracción de los tar.zst de AB y cruce de features). Ambos leen `matches.csv` (la
+tabla `match` de DuckDB muere si se repite `make 03`) y abren la base en solo lectura.
+No hace falta modo muestra: todo son joins acotados por los 80.719 matches, sin bucles
+por canción.
+
+### Números medidos
+
+| | |
+|---|---|
+| `make 05` | 13 s en total |
+| `artists.csv` | 26.884 filas (los 27.352 del MSD menos 468 sin resolver) |
+| `releases.csv` | 80.706 — solo 13 grabaciones sin ninguna edición ("standalone") |
+| `labels.csv` | 56.509 |
+| `tags.csv` | 285.855 (recording + release_group) |
+| `urls.csv` | 499.891 |
+
+### Decisiones
+
+- **Una edición por grabación.** La cadena recording→track→medium→release→release_country
+  da decenas de ediciones por grabación; se elige la de fecha más antigua con
+  `row_number()`, prefiriendo `status = 1` (Official) en el ORDER BY en vez de filtrar
+  con WHERE, para no perder grabaciones que solo existen en bootlegs o promos.
+- **Procedencia como columna.** Cada CSV lleva una columna `fuente` literal
+  (`musicbrainz` / `musicbrainz-derived` / `acousticbrainz`); es lo mínimo que satisface
+  el requisito de procedencia del enunciado.
+- **Tags por artista agregados** (top 5 por votos, separados por `;`) para que
+  `artists.csv` quede en una fila por artista; los tags por grabación y por grupo de
+  ediciones van aparte en `tags.csv` en formato largo.
+- **Sin tipo de sello:** la tabla `label_type` no se extrajo en la fase B y el nombre
+  del sello basta para el modelo; se anota como limitación menor.
+
+### AcousticBrainz (`make 06`, 234 s)
+
+La inspección (primera cosa que imprime el script: el formato interno no está
+documentado) mostró que cada tar.zst trae **un solo CSV gigante** con cabecera:
+`mbid, submission_offset` + 3 columnas en lowlevel, 7 en rhythm y 4 en tonal.
+
+| | |
+|---|---|
+| Extracción de los 3 tar.zst | ~90 s (9,6 GB de CSV) |
+| MBIDs objetivo (matches + redirigidos) | 232.261 para 80.719 matches |
+| MBIDs con features (por categoría) | 44.608 en las tres |
+| `features.csv` | **45.211 / 80.719 = 56,0 %** (varios track_id comparten grabación) |
+
+- El cruce filtra ya en el scan (JOIN contra los mbids objetivo) para no materializar
+  los 29,5 M de filas por categoría; cada scan tarda ~35-55 s con 2 GB de RAM.
+- Los MBIDs de AB son de ≤2022: el objetivo incluye también los gids viejos que
+  redirigen a nuestras grabaciones (`recording_gid_redirect` al revés que en la fase D).
+- **Fallo encontrado a la primera pasada:** `submission_offset` se colaba tres veces en
+  `features.csv` y el dedup por mbid usaba `row_number()` sin ORDER BY (no determinista).
+  Arreglado: se ordena por `submission_offset` (primera submission, reproducible) y se
+  excluye la columna de la salida. Costó un rerun de 4 minutos.
+- La cobertura del 56 % es limitación de la fuente (AB congelado en 2022), no del
+  proceso; `songs.csv` conservará las 100.000 filas igualmente.
+- Al terminar, el script borra los CSV extraídos (`/data/interim/ab`); los tar.zst
+  originales quedan en `/data/raw` por si hay que repetir.
+
+### Pendiente para la fase F
+
+Exportar `songs.csv` con las 100.000 filas + columnas enriquecidas, modelo conceptual
+y recorte del informe a 4 páginas.

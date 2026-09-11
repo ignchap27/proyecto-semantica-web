@@ -73,12 +73,12 @@ Tiene que imprimir las versiones de duckdb/pandas/rapidfuzz/unidecode, las rutas
 
 ```bash
 make 00     # descarga los 11 GB y verifica checksums (~40 min)
-make 01     # extrae las 33 tablas que usamos a /data/interim (~14 min)
+make 01     # extrae las 34 tablas que usamos a /data/interim (~14 min)
 ```
 
 El paso 00 es reejecutable: lo ya descargado y verificado no se vuelve a bajar. Si un
 checksum no cuadra, borra el archivo y falla, para que un dump corrupto no llegue más
-lejos. El paso 01 saca solo las tablas que nos interesan (33 de 236) sin materializar
+lejos. El paso 01 saca solo las tablas que nos interesan (34 de 236) sin materializar
 nunca los 45 GB del dump completo.
 
 Para verificar, además de los conteos que imprime el script: dentro de `make shell`,
@@ -134,7 +134,37 @@ python scripts/test_match.py
 
 ### Fase E — Enriquecimiento
 
-_Pendiente._
+```bash
+make 05     # artistas, ediciones, sellos, tags y urls desde MusicBrainz (~15 s)
+make 06     # features acústicas desde AcousticBrainz (~4 min)
+```
+
+El paso 05 toma los 80.719 matches de la fase D y saca de la base de MusicBrainz cinco
+CSVs a `data/processed/`, cada uno con una columna `fuente` que dice de dónde salió el
+dato (la "procedencia" que pide el enunciado):
+
+| Archivo | Filas | Qué trae |
+|---|---|---|
+| `artists.csv` | 26.884 | nombre, tipo, género, país, años de actividad, top 5 de tags y enlace a Wikidata por artista |
+| `releases.csv` | 80.706 | la edición (release) más antigua de cada grabación, con año, país y tipo de álbum |
+| `labels.csv` | 56.509 | sello discográfico y número de catálogo de esas ediciones |
+| `tags.csv` | 285.855 | tags de la comunidad por grabación y por grupo de ediciones |
+| `urls.csv` | 499.891 | todos los enlaces externos (Wikidata, Discogs, YouTube…) de artistas y ediciones |
+
+Para elegir "la" edición de cada grabación (una grabación suele estar en muchos discos)
+se toma la de fecha más antigua, prefiriendo las oficiales sobre bootlegs y promos. Solo
+13 grabaciones se quedan sin edición (grabaciones "sueltas" en MusicBrainz).
+
+El paso 06 extrae los tres `tar.zst` de AcousticBrainz (descargados en la fase B),
+cruza sus ~29 M de filas por categoría con nuestros MBIDs —canonicalizando por
+`recording_gid_redirect`, porque los MBIDs de AcousticBrainz son de 2022— y deja
+`features.csv` con bpm, tonalidad, danceability y compañía. AcousticBrainz se congeló
+en 2022, así que no cubre todo: 45.211 de los 80.719 matches (56 %) tienen features.
+Al terminar borra los CSVs extraídos (los `tar.zst` originales quedan en `/data/raw`).
+
+Verificación: los seis CSVs existen en `data/processed/` y los conteos de arriba salen
+en `make logs-05` / `make logs-06`. Ambos scripts revientan solos si hay ids duplicados
+o algún CSV queda vacío.
 
 ### Fase F — Exportar entregables
 
@@ -175,5 +205,7 @@ sobreviven siempre.
     ├── 02_headers.py
     ├── 03_load_duckdb.py
     ├── 04_match.py
+    ├── 05_enrich.py
+    ├── 06_acousticbrainz.py
     └── test_match.py       # checks de la fase D, se corre dentro de make shell
 ```

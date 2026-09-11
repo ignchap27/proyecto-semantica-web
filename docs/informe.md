@@ -24,7 +24,7 @@ grabaciones de las 100.000 canciones habría llevado unas 28 horas.
 | AcousticBrainz, *lowlevel features* (2,8 GB) | `20220623` | Descriptores de audio: tempo, tonalidad, escala, sonoridad y características rítmicas |
 | AcousticBrainz labs, mapeo `msd-mbid-2016-01` (13 MB) | 2016-01 | 377.406 correspondencias MSD→MBID, usadas para **validar** la reconciliación propia |
 
-De MusicBrainz se extraen 33 tablas de las 236 del volcado. La selección no es arbitraria:
+De MusicBrainz se extraen 34 tablas de las 236 del volcado. La selección no es arbitraria:
 cubre las entidades que el modelo conceptual necesita (grabación, lanzamiento, artista,
 sello, obra, género) más las tablas de enlace y los vocabularios controlados (`artist_type`,
 `gender`, `language`, `script`, `link_type`) sin los que los identificadores numéricos del
@@ -54,13 +54,13 @@ justificó sola: el servidor espejo se quedó colgado a mitad de una descarga y 
 produjo un archivo corrupto que solo se detectó gracias a la verificación.
 
 **Extracción (`01_extract.py`).** Un volcado `.tar.bz2` no admite acceso aleatorio: aunque
-solo interesen 33 tablas de 236, hay que descomprimir el flujo entero. Se usa `lbzip2`, que
+solo interesen 34 tablas de 236, hay que descomprimir el flujo entero. Se usa `lbzip2`, que
 paraleliza la descompresión, y se le pasan a `tar` los miembros deseados como patrones, de
 forma que el flujo se recorre una sola vez y solo se escriben en disco las tablas
 seleccionadas. Los 45 GB del volcado completo nunca se materializan: quedan 21 GB de TSV.
 El core tarda 374 segundos y el derivado 13.
 
-El resultado son 33 archivos TSV sin cabecera —el volcado usa el formato `COPY` de
+El resultado son 34 archivos TSV sin cabecera —el volcado usa el formato `COPY` de
 PostgreSQL— más el mapeo MSD→MBID descomprimido. Las tablas mayores son `track`
 (57,8 millones de filas), `recording` (40,1 millones) y `url` (21,6 millones).
 
@@ -70,7 +70,7 @@ las restricciones `CHECK (...)` multilínea, que contienen nombres que parecen
 declaraciones, y aborta si `artist` no da 19 columnas o `recording` 9 —la señal de que el
 esquema publicado se desalineó con el volcado.
 
-**Carga (`03_load_duckdb.py`).** Las 33 tablas más el mapeo MSD se materializan en una
+**Carga (`03_load_duckdb.py`).** Las 34 tablas más el mapeo MSD se materializan en una
 base DuckDB de 9,5 GB (los 21 GB de TSV comprimen a menos de la mitad). La carga completa
 tarda unos 16 minutos con un consumo de memoria acotado a 2 GB: DuckDB por defecto intenta
 retener las tablas en RAM antes de escribirlas, lo que con tablas de 40–58 millones de
@@ -109,7 +109,39 @@ generó por matching automático en 2016.
 
 ## 4. Integración y limpieza
 
-_Fase E._
+Con el matching resuelto, el enriquecimiento son joins sobre la base DuckDB. El paso
+`05_enrich.py` produce cinco CSV consolidados en `data/processed/`, todos con una columna
+`fuente` que registra la procedencia del dato (`musicbrainz`, `musicbrainz-derived` o
+`acousticbrainz`):
+
+| Archivo | Filas | Contenido |
+|---|---|---|
+| `artists.csv` | 26.884 | tipo, género, país, años de actividad, top 5 de tags y URL de Wikidata por artista |
+| `releases.csv` | 80.706 | edición más antigua de cada grabación: año, mes, país, grupo de ediciones y tipo |
+| `labels.csv` | 56.509 | sello y número de catálogo de esas ediciones |
+| `tags.csv` | 285.855 | tags de la comunidad por grabación y por grupo de ediciones |
+| `urls.csv` | 499.891 | enlaces externos (Wikidata, Discogs, etc.) de artistas y ediciones |
+| `features.csv` | 45.211 | features acústicas de AcousticBrainz (bpm, tonalidad, danceability…) |
+
+Las decisiones de limpieza principales:
+
+- **Una edición por grabación.** Una grabación aparece en decenas de discos
+  (reediciones, recopilatorios, por país). Se elige la de fecha más antigua según
+  `release_country`, prefiriendo ediciones oficiales sobre bootlegs y promos, pero sin
+  descartar estas últimas cuando son lo único que hay. Solo 13 grabaciones quedan sin
+  edición. El año resultante servirá en la fase F para rellenar las 45.219 filas cuyo
+  `year` del MSD es 0.
+- **Wikidata sin salir del dump:** el enlace por artista sale de `l_artist_url → url`
+  filtrando por `link_type = 'wikidata'`, sin consultar ningún servicio externo.
+- **Features acústicas (`06_acousticbrainz.py`).** Los tres volcados CSV de
+  AcousticBrainz (~29,5 M de filas cada uno) traen varias *submissions* por grabación;
+  se conserva una por MBID (la de menor `submission_offset`, determinista). Como sus
+  MBID son de 2022, se canonicalizan contra `recording_gid_redirect` antes del cruce:
+  el conjunto objetivo pasa de 80.719 a 232.261 MBIDs contando los redirigidos.
+- **Cobertura de AcousticBrainz: 45.211 de 80.719 matches (56 %).** AcousticBrainz se
+  congeló en 2022, así que esta es una limitación de la fuente, no del proceso; se
+  documenta y las filas sin features quedan con esos campos vacíos en la exportación
+  final, que conserva las 100.000 canciones.
 
 ## 5. Tecnologías utilizadas
 

@@ -45,6 +45,10 @@ CREATE_TABLES_SQL = (
 DURATION_TOLERANCE_S = 15  # guardia de duracion para el fuzzy
 FUZZY_THRESHOLD = 90       # token_set_ratio minimo
 
+# --- enriquecimiento (fase E) ---
+AB_DIR = f"{INTERIM}/ab"  # CSVs extraidos de los tar.zst de AcousticBrainz
+TOP_TAGS = 5              # tags agregados por artista
+
 # --- tablas a extraer ---
 # el dump core trae 236 tablas y ~45 GB; solo sacamos estas
 MB_CORE_TABLES = [
