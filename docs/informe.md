@@ -80,8 +80,32 @@ cargada se contrastan contra los medidos en la extracción.
 
 ## 3. Reconciliación
 
-_Fase D. Debe incluir la tasa de match por método y el contraste contra el mapeo
-`msd-mbid-2016-01` de AcousticBrainz._
+El dataset de entrada trae el MBID del artista en el 100 % de las filas, así que la
+reconciliación de artistas se reduce a una verificación: 26.242 de los 27.352 MBID
+existen tal cual en el dump y 642 más se resuelven vía `artist_gid_redirect` (artistas
+fusionados desde 2010, cuando se generó el MSD); solo 468 quedan sin resolver. El
+problema real es asignar a cada canción su **grabación** (recording), que el MSD no trae.
+
+En lugar de comparar cada título contra los 40 millones de grabaciones, se acotan los
+candidatos a las grabaciones del propio artista (8,6 millones en total, unos cientos por
+canción) y se decide en cascada, cada método solo sobre lo que el anterior no resolvió:
+
+1. **Título exacto** (normalizado: minúsculas, sin acentos, solo alfanumérico): 66.446.
+2. **Sin sufijo**: igual, quitando el sufijo entre paréntesis típico del MSD
+   ("(Album Version)"): 8.970.
+3. **Difuso** (`token_set_ratio` ≥ 90 con duración a ±15 s): 5.303.
+
+Cobertura total: **80.719 de 100.000 (80,7 %)**, en 40 segundos. Los empates se
+resuelven prefiriendo duración dentro de ±15 s, luego la grabación más referenciada por
+la tabla `track` y luego la menor diferencia de duración.
+
+Como medida de precisión independiente se contrastó contra el mapeo `msd-mbid-2016-01`
+de AcousticBrainz, que cubre 39.513 de nuestras filas: el acuerdo exacto es del 57,5 %,
+pero un análisis de los desacuerdos mostró que la gran mayoría son grabaciones
+**duplicadas sin fusionar** en MusicBrainz (mismo título normalizado y mismo crédito de
+artista, distinto MBID): contándolas como acuerdo, la coincidencia sube al **82,9 %**. El
+desacuerdo restante no es atribuible solo a nuestro proceso: el mapeo de AB también se
+generó por matching automático en 2016.
 
 ## 4. Integración y limpieza
 
@@ -122,3 +146,11 @@ _Se destila de `bitacora.md`; se redacta en detalle en la fase F. Apuntados hast
 - Los tags/géneros no están en el volcado core sino en el derivado, que hubo que sumar.
 - La carga inicial en DuckDB agotaba la RAM de la máquina; se acotó con `memory_limit` y
   derrame a disco.
+- El mapeo MSD→MBID venía sin cabecera y el lector de CSV convirtió la primera fila de
+  datos en nombres de columna; pasó inadvertido una fase entera hasta que el contraste lo
+  destapó.
+- El primer contraste contra AcousticBrainz dio un acuerdo del 41 % que parecía un fallo
+  del matching y resultó ser otra cosa: MusicBrainz está lleno de grabaciones duplicadas
+  sin fusionar y cada proceso elegía un duplicado distinto. Desempatar por la grabación
+  más referenciada y medir el acuerdo a nivel de título+artista dio la imagen real
+  (82,9 %).

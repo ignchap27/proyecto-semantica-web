@@ -41,7 +41,7 @@ shell:
 clean:
 	-@docker rm $$(docker ps -aq -f 'name=^etl_') 2>/dev/null || true
 
-# borra el volumen `work`: los ~32 GB de dumps, TSV y la base duckdb
+# borra el volumen `work`: los ~42 GB de dumps, TSV y la base duckdb
 nuke:
-	@read -p "Borra los ~32 GB del volumen work. Escribe SI para confirmar: " r; \
+	@read -p "Borra los ~42 GB del volumen work. Escribe SI para confirmar: " r; \
 	[ "$$r" = "SI" ] && docker compose down -v || echo "cancelado"

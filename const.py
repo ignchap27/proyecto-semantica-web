@@ -41,6 +41,10 @@ CREATE_TABLES_SQL = (
     "admin/sql/CreateTables.sql"
 )
 
+# --- matching (fase D) ---
+DURATION_TOLERANCE_S = 15  # guardia de duracion para el fuzzy
+FUZZY_THRESHOLD = 90       # token_set_ratio minimo
+
 # --- tablas a extraer ---
 # el dump core trae 236 tablas y ~45 GB; solo sacamos estas
 MB_CORE_TABLES = [

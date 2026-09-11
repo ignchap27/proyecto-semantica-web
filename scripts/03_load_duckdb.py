@@ -34,7 +34,10 @@ for tabla, cols in sorted(headers.items()):
     n = db.execute(f"SELECT count(*) FROM {tabla}").fetchone()[0]
     print(f"{tabla:<28} {n:>12,}  {time.time() - t:5.0f} s")
 
-db.execute(f"CREATE TABLE msd_mbid AS SELECT * FROM read_csv('{const.INTERIM}/msd_mbid.csv')")
+# el csv NO trae cabecera: sin names= el sniffer se come la primera fila como tal
+db.execute(f"""CREATE TABLE msd_mbid AS SELECT * FROM read_csv(
+    '{const.INTERIM}/msd_mbid.csv', header=false,
+    names=['msd_track_id', 'recording_mbid', 'titulo', 'artista'])""")
 n = db.execute("SELECT count(*) FROM msd_mbid").fetchone()[0]
 print(f"{'msd_mbid':<28} {n:>12,}")
 

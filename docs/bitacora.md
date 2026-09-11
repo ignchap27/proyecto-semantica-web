@@ -251,3 +251,68 @@ vez.
 
 Matching `track_id` → recording MBID: candidatos por `artist_mbid`, decisión por título
 normalizado + duración. Probar primero con muestra de 1.000.
+
+---
+
+## 2026-09-10 — Fase D: matching `track_id` → recording MBID
+
+### Qué se hizo
+
+`scripts/04_match.py` (el matching en cascada) y `scripts/test_match.py` (los checks).
+La estrategia decidida en la fase A funcionó: candidatos acotados por `artist_mbid` y
+decisión por título normalizado + duración, en tres pasadas sobre lo aún sin resolver.
+
+### Números medidos
+
+| | |
+|---|---|
+| Cobertura total | **80.719 / 100.000 = 80,7 %** (el criterio era ≥ 60 %) |
+| Por método | exacto 66.446 · sin sufijo 8.970 · fuzzy 5.303 |
+| Artistas resueltos | 26.242 directos + 642 por `artist_gid_redirect`; 468 sin resolver |
+| Candidatos | 8,6 M recordings para los 26.884 artistas |
+| Tiempo total | **40 s** (el fuzzy, la parte "lenta", tarda 12 s sobre 23.588 pendientes) |
+| Contraste AB | el mapeo cubre 39.513 de nuestras filas (39,5 %, no el 25 % estimado) |
+| Acuerdo con AB | exacto 57,5 %, laxo 82,9 % (ver abajo) |
+
+Con la muestra de 1.000 los números fueron casi idénticos (80–81 % de cobertura), así que
+la corrida completa no dio sorpresas.
+
+### Problemas encontrados
+
+**`msd_mbid` estaba mal cargada desde la fase C.** El CSV del mapeo no trae cabecera,
+pero `read_csv` sin `names=` decidió que la primera fila (toda VARCHAR) era la cabecera:
+la tabla quedó con un track id como nombre de columna y una fila menos. Por eso la fase C
+contó 377.405 filas "menos la cabecera": no había cabecera, son 377.406. Corregido en
+`03_load_duckdb.py` y recargada la tabla en el paso 04 (13 MB, instantáneo) para no
+repetir los 16 minutos de la carga completa.
+
+**El acuerdo con AB salió al 41 % y no era un error nuestro.** Alarmante a primera vista.
+Diagnóstico sobre la muestra: de 247 desacuerdos, 200 eran mismo título normalizado y 218
+mismo `artist_credit` — MusicBrainz está lleno de grabaciones duplicadas sin fusionar
+(misma canción, distinto MBID), y nosotros elegíamos un duplicado y el mapeo de AB otro.
+Dos arreglos: (1) desempatar prefiriendo la grabación más referenciada por `track` (la
+"canónica"), lo que subió el acuerdo exacto de 41 % a 57,5 %; (2) medir también un
+"acuerdo laxo" (mismo título normalizado + mismo `artist_credit`) que da 82,9 % y es la
+métrica honesta — el resto del desacuerdo es en buena parte atribuible al propio mapeo de
+AB, que también se generó por matching automático en 2016.
+
+**Lo que salió a la primera:** el parser de títulos en SQL puro (macro con
+`strip_accents` + `regexp_replace`), la resolución por `artist_gid_redirect` y la
+cascada con `NOT IN (SELECT track_id FROM match)`.
+
+### Decisiones
+
+- **Popularidad como desempate.** Entre candidatos con el mismo título, gana el que tenga
+  la duración dentro de ±15 s, luego el más referenciado por `track`, luego la menor
+  diferencia de duración. Además de subir el acuerdo con AB, elegir el duplicado canónico
+  mejora las probabilidades de encontrar features en AcousticBrainz en la fase E.
+- **El fuzzy lleva guardia de duración** (±15 s, `token_set_ratio` ≥ 90): sin ella
+  empareja títulos parecidos de canciones distintas. Grabaciones sin `length` quedan
+  fuera del fuzzy.
+- **El 19,3 % sin match se queda sin match.** Bajar el umbral del fuzzy compraría
+  cobertura pagando con falsos positivos; 80,7 % ya dobla el criterio de la fase.
+
+### Pendiente para la fase E
+
+Enriquecimiento: artistas/releases/labels/tags/urls desde MusicBrainz y features desde
+los dumps de AcousticBrainz (extraerlos primero; están descargados desde la fase B).
