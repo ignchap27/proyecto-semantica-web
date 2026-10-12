@@ -5,14 +5,17 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <http://semantica-web.misis/grupo5/modelo> a owl:Ontology ;
-    rdfs:label "Explorador musical del MSD (grupo 5)"@es .
+    rdfs:label "Explorador musical del MSD (grupo 5)"@es ;
+    rdfs:comment "Vocabulario para describir 100.000 canciones del Million Song Dataset enriquecidas con MusicBrainz y AcousticBrainz: quién las interpreta, en qué discos salieron, con qué sello y cómo suenan."@es .
 
 sem:Coro a owl:Class ;
     rdfs:label "Coro"@es ;
+    rdfs:comment "Grupo que es un coro."@es ;
     rdfs:subClassOf sem:Grupo .
 
 sem:GrabacionAnalizada a owl:Class ;
     rdfs:label "Grabación analizada"@es ;
+    rdfs:comment "Clase definida: toda grabación que tiene features acústicas de AcousticBrainz."@es ;
     rdfs:subClassOf sem:Grabacion ;
     owl:equivalentClass [ a owl:Class ;
             owl:intersectionOf ( sem:Grabacion [ a owl:Restriction ;
@@ -21,265 +24,320 @@ sem:GrabacionAnalizada a owl:Class ;
 
 sem:Orquesta a owl:Class ;
     rdfs:label "Orquesta"@es ;
+    rdfs:comment "Grupo que es una orquesta."@es ;
     rdfs:subClassOf sem:Grupo .
 
 sem:Persona a owl:Class ;
     rdfs:label "Persona"@es ;
+    rdfs:comment "Artista que es una sola persona (solista)."@es ;
     rdfs:subClassOf sem:Artista ;
     owl:disjointWith sem:Grupo .
 
 sem:Personaje a owl:Class ;
     rdfs:label "Personaje"@es ;
+    rdfs:comment "Artista ficticio, por ejemplo un personaje de dibujos animados al que se le atribuyen canciones."@es ;
     rdfs:subClassOf sem:Artista .
 
 sem:anio a owl:DatatypeProperty ;
-    rdfs:label "anio"@es ;
+    rdfs:label "año"@es ;
+    rdfs:comment "Año de publicación consolidado: el del MSD o, si falta, el de MusicBrainz (anio)."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:gYear .
 
 sem:anioFin a owl:DatatypeProperty ;
-    rdfs:label "artista_anio_fin"@es ;
+    rdfs:label "año de fin"@es ;
+    rdfs:comment "Año de muerte o de disolución del grupo (artista_anio_fin)."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:gYear .
 
 sem:anioInicio a owl:DatatypeProperty ;
-    rdfs:label "artista_anio_inicio"@es ;
+    rdfs:label "año de inicio"@es ;
+    rdfs:comment "Año de nacimiento o de formación del grupo (artista_anio_inicio)."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:gYear .
 
 sem:area a owl:DatatypeProperty ;
-    rdfs:label "artista_area"@es ;
+    rdfs:label "área"@es ;
+    rdfs:comment "País o zona de origen del artista (artista_area)."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:string .
 
 sem:artistMbid a owl:DatatypeProperty,
         owl:InverseFunctionalProperty ;
-    rdfs:label "mbid_canonico"@es ;
+    rdfs:label "MBID del artista"@es ;
+    rdfs:comment "Identificador actual del artista en MusicBrainz (mbid_canonico). Identifica un solo artista."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:string .
 
 sem:averageLoudness a owl:DatatypeProperty ;
-    rdfs:label "average_loudness"@es ;
+    rdfs:label "volumen medio"@es ;
+    rdfs:comment "Volumen medio del audio, de 0 a 1 (average_loudness)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:decimal .
 
 sem:bpm a owl:DatatypeProperty ;
-    rdfs:label "bpm"@es ;
+    rdfs:label "tempo (BPM)"@es ;
+    rdfs:comment "Tempo en pulsos por minuto (bpm)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:decimal .
 
 sem:bpmPrimerPicoMedia a owl:DatatypeProperty ;
-    rdfs:label "bpm_histogram_first_peak_bpm_mean"@es ;
+    rdfs:label "BPM del primer pico (media)"@es ;
+    rdfs:comment "Media del tempo más frecuente en el histograma de BPM (bpm_histogram_first_peak_bpm_mean)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:decimal .
 
 sem:bpmPrimerPicoMediana a owl:DatatypeProperty ;
-    rdfs:label "bpm_histogram_first_peak_bpm_median"@es ;
+    rdfs:label "BPM del primer pico (mediana)"@es ;
+    rdfs:comment "Mediana del tempo más frecuente en el histograma de BPM (bpm_histogram_first_peak_bpm_median)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:decimal .
 
 sem:bpmSegundoPicoMedia a owl:DatatypeProperty ;
-    rdfs:label "bpm_histogram_second_peak_bpm_mean"@es ;
+    rdfs:label "BPM del segundo pico (media)"@es ;
+    rdfs:comment "Media del segundo tempo más frecuente (bpm_histogram_second_peak_bpm_mean)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:decimal .
 
 sem:bpmSegundoPicoMediana a owl:DatatypeProperty ;
-    rdfs:label "bpm_histogram_second_peak_bpm_median"@es ;
+    rdfs:label "BPM del segundo pico (mediana)"@es ;
+    rdfs:comment "Mediana del segundo tempo más frecuente (bpm_histogram_second_peak_bpm_median)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:decimal .
 
 sem:correspondeA a owl:FunctionalProperty,
         owl:ObjectProperty ;
     rdfs:label "se corresponde con"@es ;
+    rdfs:comment "Une la canción del MSD con su grabación en MusicBrainz (resultado del matching). Como mucho una por canción."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range sem:Grabacion .
 
 sem:danceability a owl:DatatypeProperty ;
-    rdfs:label "danceability"@es ;
+    rdfs:label "bailabilidad"@es ;
+    rdfs:comment "Qué tan bailable es la pista; más alto, más bailable (danceability)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:decimal .
 
 sem:desviacionTemperada a owl:DatatypeProperty ;
-    rdfs:label "tuning_equal_tempered_deviation"@es ;
+    rdfs:label "desviación temperada"@es ;
+    rdfs:comment "Cuánto se aparta la afinación del temperamento igual (tuning_equal_tempered_deviation)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:decimal .
 
 sem:duracion a owl:DatatypeProperty,
         owl:FunctionalProperty ;
-    rdfs:label "duration (segundos)"@es ;
+    rdfs:label "duración (s)"@es ;
+    rdfs:comment "Duración de la canción en segundos (duration del MSD)."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:decimal .
 
 sem:duracionMs a owl:DatatypeProperty,
         owl:FunctionalProperty ;
-    rdfs:label "recording.length (milisegundos)"@es ;
+    rdfs:label "duración (ms)"@es ;
+    rdfs:comment "Duración de la grabación en milisegundos según MusicBrainz (recording.length)."@es ;
     rdfs:domain sem:Grabacion ;
     rdfs:range xsd:decimal .
 
 sem:dynamicComplexity a owl:DatatypeProperty ;
-    rdfs:label "dynamic_complexity"@es ;
+    rdfs:label "complejidad dinámica"@es ;
+    rdfs:comment "Cuánto varía el volumen a lo largo de la pista (dynamic_complexity)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:decimal .
 
 sem:editadoPor a owl:ObjectProperty ;
     rdfs:label "editado por"@es ;
+    rdfs:comment "Sello discográfico que publicó el lanzamiento."@es ;
     rdfs:domain sem:Lanzamiento ;
     rdfs:range sem:Sello .
 
 sem:frecuenciaAfinacion a owl:DatatypeProperty ;
-    rdfs:label "tuning_frequency"@es ;
+    rdfs:label "frecuencia de afinación"@es ;
+    rdfs:comment "Frecuencia de referencia de la afinación en Hz, normalmente cerca de 440 (tuning_frequency)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:decimal .
 
 sem:fuenteAnio a owl:DatatypeProperty ;
-    rdfs:label "fuente_anio"@es ;
+    rdfs:label "fuente del año"@es ;
+    rdfs:comment "De dónde salió el año: 'msd' o 'musicbrainz' (fuente_anio)."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:string .
 
 sem:interpretadaPor a owl:ObjectProperty ;
     rdfs:label "interpretada por"@es ;
+    rdfs:comment "Une la canción con el artista que la interpreta."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range sem:Artista .
 
 sem:labelMbid a owl:DatatypeProperty ;
-    rdfs:label "label_mbid"@es ;
+    rdfs:label "MBID del sello"@es ;
+    rdfs:comment "Identificador del sello en MusicBrainz (label_mbid)."@es ;
     rdfs:domain sem:Sello ;
     rdfs:range xsd:string .
 
 sem:mbidAntiguo a owl:DatatypeProperty ;
-    rdfs:label "artist_mbid (antes de resolver el redirect)"@es ;
+    rdfs:label "MBID antiguo"@es ;
+    rdfs:comment "Identificador que traía el MSD cuando el artista se fusionó después con otro en MusicBrainz (artist_mbid antes de resolver la redirección)."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:string .
 
 sem:metodoMatch a owl:DatatypeProperty ;
-    rdfs:label "metodo_match"@es ;
+    rdfs:label "método de matching"@es ;
+    rdfs:comment "Cómo se encontró la grabación: 'exacto', 'sin_sufijo' o 'fuzzy' (metodo_match)."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:string .
 
 sem:mfccZeroMean a owl:DatatypeProperty ;
-    rdfs:label "mfcc_zero_mean"@es ;
+    rdfs:label "media del MFCC 0"@es ;
+    rdfs:comment "Media del primer coeficiente MFCC, relacionado con la energía del sonido (mfcc_zero_mean)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:decimal .
 
 sem:modo a owl:DatatypeProperty ;
-    rdfs:label "key_scale"@es ;
+    rdfs:label "modo"@es ;
+    rdfs:comment "Modo de la tonalidad: major o minor (key_scale)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:string .
 
 sem:nombre a owl:DatatypeProperty ;
     rdfs:label "nombre"@es ;
+    rdfs:comment "Nombre de un artista, sello o género."@es ;
     rdfs:range xsd:string .
 
 sem:onsetRate a owl:DatatypeProperty ;
-    rdfs:label "onset_rate"@es ;
+    rdfs:label "tasa de ataques"@es ;
+    rdfs:comment "Notas o golpes que empiezan por segundo (onset_rate)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:decimal .
 
 sem:pais a owl:DatatypeProperty ;
-    rdfs:label "release_pais"@es ;
+    rdfs:label "país"@es ;
+    rdfs:comment "País donde se publicó el lanzamiento (release_pais)."@es ;
     rdfs:domain sem:Lanzamiento ;
     rdfs:range xsd:string .
 
 sem:publicadaEn a owl:ObjectProperty ;
     rdfs:label "publicada en"@es ;
+    rdfs:comment "Disco en el que salió la grabación. Una grabación puede salir en varios."@es ;
     rdfs:domain sem:Grabacion ;
     rdfs:range sem:Lanzamiento .
 
 sem:recordingMbid a owl:DatatypeProperty,
         owl:InverseFunctionalProperty ;
-    rdfs:label "recording_mbid"@es ;
+    rdfs:label "MBID de la grabación"@es ;
+    rdfs:comment "Identificador de la grabación en MusicBrainz (recording_mbid). Identifica una sola grabación."@es ;
     rdfs:domain sem:Grabacion ;
     rdfs:range xsd:string .
 
 sem:releaseMbid a owl:DatatypeProperty ;
-    rdfs:label "release_mbid"@es ;
+    rdfs:label "MBID del lanzamiento"@es ;
+    rdfs:comment "Identificador del lanzamiento en MusicBrainz (release_mbid)."@es ;
     rdfs:domain sem:Lanzamiento ;
     rdfs:range xsd:string .
 
 sem:releaseMsd a owl:DatatypeProperty ;
-    rdfs:label "release"@es ;
+    rdfs:label "disco según el MSD"@es ;
+    rdfs:comment "Nombre del disco tal como viene en el MSD (release), sin reconciliar."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:string .
 
 sem:sexo a owl:DatatypeProperty ;
-    rdfs:label "artista_genero"@es ;
+    rdfs:label "sexo"@es ;
+    rdfs:comment "Sexo del artista si es persona: Male, Female... (artista_genero)."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:string .
 
 sem:tieneGenero a owl:ObjectProperty ;
     rdfs:label "tiene género"@es ;
+    rdfs:comment "Género musical asociado al artista."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range sem:Genero .
 
 sem:tieneMiembro a owl:ObjectProperty ;
     rdfs:label "tiene miembro"@es ;
+    rdfs:comment "Inversa de 'miembro de': el grupo tiene a ese artista entre sus miembros."@es ;
     rdfs:domain sem:Grupo ;
     rdfs:range sem:Artista ;
     owl:inverseOf sem:miembroDe .
 
 sem:tipoLanzamiento a owl:DatatypeProperty ;
-    rdfs:label "release_tipo"@es ;
+    rdfs:label "tipo de lanzamiento"@es ;
+    rdfs:comment "Tipo de disco: Album, Single, EP... (release_tipo)."@es ;
     rdfs:domain sem:Lanzamiento ;
     rdfs:range xsd:string .
 
 sem:titulo a owl:DatatypeProperty ;
-    rdfs:label "title"@es ;
+    rdfs:label "título"@es ;
+    rdfs:comment "Título de la canción según el MSD (title)."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:string .
 
 sem:tituloLanzamiento a owl:DatatypeProperty ;
-    rdfs:label "release_titulo"@es ;
+    rdfs:label "título del lanzamiento"@es ;
+    rdfs:comment "Título del disco según MusicBrainz (release_titulo)."@es ;
     rdfs:domain sem:Lanzamiento ;
     rdfs:range xsd:string .
 
 sem:tonalidad a owl:DatatypeProperty ;
-    rdfs:label "key_key"@es ;
+    rdfs:label "tonalidad"@es ;
+    rdfs:comment "Nota de la tonalidad: C, F#... (key_key)."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:string .
 
 sem:trackId a owl:DatatypeProperty ;
-    rdfs:label "track_id"@es ;
+    rdfs:label "identificador MSD"@es ;
+    rdfs:comment "Identificador de la canción en el Million Song Dataset (columna track_id)."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:string .
 
 sem:wikidata a owl:ObjectProperty ;
-    rdfs:label "artista_wikidata"@es ;
+    rdfs:label "página en Wikidata"@es ;
+    rdfs:comment "Enlace a la ficha del artista en Wikidata, sacado de las URL de MusicBrainz (artista_wikidata)."@es ;
     rdfs:domain sem:Artista .
 
 sem:descritaPor a owl:ObjectProperty ;
     rdfs:label "descrita por"@es ;
+    rdfs:comment "Une la grabación con sus medidas de audio de AcousticBrainz."@es ;
     rdfs:domain sem:Grabacion ;
     rdfs:range sem:FeaturesAcusticas .
 
 sem:miembroDe a owl:ObjectProperty ;
     rdfs:label "miembro de"@es ;
+    rdfs:comment "El artista forma o formó parte del grupo (relación 'member of band' de MusicBrainz)."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range sem:Grupo .
 
 sem:Genero a owl:Class ;
-    rdfs:label "Género"@es .
+    rdfs:label "Género"@es ;
+    rdfs:comment "Género musical. Sale de las etiquetas del artista que están en el vocabulario oficial de géneros de MusicBrainz."@es .
 
 sem:Sello a owl:Class ;
-    rdfs:label "Sello"@es .
+    rdfs:label "Sello"@es ;
+    rdfs:comment "Sello discográfico que edita un lanzamiento. La autoedición ('[no label]' en MusicBrainz) no cuenta como sello."@es .
 
 sem:Grupo a owl:Class ;
     rdfs:label "Grupo"@es ;
+    rdfs:comment "Artista formado por varias personas (banda, dúo...)."@es ;
     rdfs:subClassOf sem:Artista .
 
 sem:Lanzamiento a owl:Class ;
-    rdfs:label "Lanzamiento"@es .
+    rdfs:label "Lanzamiento"@es ;
+    rdfs:comment "Un disco o edición publicada (release de MusicBrainz): álbum, sencillo, recopilatorio, reedición..."@es .
 
 sem:Grabacion a owl:Class ;
-    rdfs:label "Grabación"@es .
+    rdfs:label "Grabación"@es ;
+    rdfs:comment "Una grabación de MusicBrainz (recording): un audio concreto, identificado por su MBID, que puede salir en varios discos."@es .
 
 sem:Cancion a owl:Class ;
-    rdfs:label "Canción"@es .
+    rdfs:label "Canción"@es ;
+    rdfs:comment "Una fila del Million Song Dataset (un track_id). Varias canciones pueden ser la misma grabación."@es .
 
 sem:Artista a owl:Class ;
-    rdfs:label "Artista"@es .
+    rdfs:label "Artista"@es ;
+    rdfs:comment "Quien interpreta las canciones: una persona, un grupo u otro tipo de artista de MusicBrainz."@es .
 
 sem:FeaturesAcusticas a owl:Class ;
-    rdfs:label "Features acústicas"@es .
+    rdfs:label "Features acústicas"@es ;
+    rdfs:comment "Medidas del audio de una grabación calculadas por AcousticBrainz: tempo, volumen, tonalidad, bailabilidad..."@es .
 
 [] a owl:AllDisjointClasses ;
     owl:members ( sem:Cancion sem:Grabacion sem:Lanzamiento sem:Sello sem:Artista sem:Genero sem:FeaturesAcusticas ) .

@@ -12,47 +12,58 @@
 ##### Clases #####
 
 sem:Cancion a rdfs:Class ;
-    rdfs:label "Canción"@es .
+    rdfs:label "Canción"@es ;
+    rdfs:comment "Una fila del Million Song Dataset que nos dieron (un track_id)."@es .
 
 sem:Artista a rdfs:Class ;
-    rdfs:label "Artista"@es .
+    rdfs:label "Artista"@es ;
+    rdfs:comment "Quien interpreta la canción. Se enlaza con MusicBrainz por el MBID del artista que trae el MSD."@es .
 
 sem:Grabacion a rdfs:Class ;
-    rdfs:label "Grabación"@es .
+    rdfs:label "Grabación"@es ;
+    rdfs:comment "Grabación de MusicBrainz (recording) a la que corresponde la canción, encontrada por nuestro matching."@es .
 
 sem:Lanzamiento a rdfs:Class ;
-    rdfs:label "Lanzamiento"@es .
+    rdfs:label "Lanzamiento"@es ;
+    rdfs:comment "Disco o edición de MusicBrainz (release) en el que salió la grabación."@es .
 
 sem:Sello a rdfs:Class ;
-    rdfs:label "Sello"@es .
+    rdfs:label "Sello"@es ;
+    rdfs:comment "Sello discográfico que publicó el lanzamiento."@es .
 
 sem:FeaturesAcusticas a rdfs:Class ;
-    rdfs:label "Features acústicas"@es .
+    rdfs:label "Features acústicas"@es ;
+    rdfs:comment "Medidas del audio de la grabación calculadas por AcousticBrainz."@es .
 
 ##### Propiedades de objeto #####
 
 sem:interpretadaPor a rdf:Property ;
     rdfs:label "interpretada por"@es ;
+    rdfs:comment "Une la canción con su artista."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range sem:Artista .
 
 sem:correspondeA a rdf:Property ;
     rdfs:label "se corresponde con"@es ;
+    rdfs:comment "Une la canción del MSD con su grabación en MusicBrainz."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range sem:Grabacion .
 
 sem:publicadaEn a rdf:Property ;
     rdfs:label "publicada en"@es ;
+    rdfs:comment "Disco en el que salió la grabación."@es ;
     rdfs:domain sem:Grabacion ;
     rdfs:range sem:Lanzamiento .
 
 sem:editadoPor a rdf:Property ;
     rdfs:label "editado por"@es ;
+    rdfs:comment "Sello que publicó el lanzamiento."@es ;
     rdfs:domain sem:Lanzamiento ;
     rdfs:range sem:Sello .
 
 sem:descritaPor a rdf:Property ;
     rdfs:label "descrita por"@es ;
+    rdfs:comment "Une la grabación con sus medidas de audio de AcousticBrainz."@es ;
     rdfs:domain sem:Grabacion ;
     rdfs:range sem:FeaturesAcusticas .
 
@@ -60,36 +71,43 @@ sem:descritaPor a rdf:Property ;
 
 sem:trackId a rdf:Property ;
     rdfs:label "track_id"@es ;
+    rdfs:comment "Identificador de la canción en el MSD."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:string .
 
 sem:titulo a rdf:Property ;
     rdfs:label "title"@es ;
+    rdfs:comment "Título de la canción según el MSD."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:string .
 
 sem:releaseMsd a rdf:Property ;
     rdfs:label "release"@es ;
+    rdfs:comment "Nombre del disco tal como viene en el MSD, sin reconciliar."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:string .
 
 sem:anioMsd a rdf:Property ;
     rdfs:label "year"@es ;
+    rdfs:comment "Año según el MSD; 0 significa que no se sabe."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:integer .
 
 sem:duracion a rdf:Property ;
     rdfs:label "duration"@es ;
+    rdfs:comment "Duración de la canción en segundos (MSD)."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:float .
 
 sem:anio a rdf:Property ;
     rdfs:label "anio"@es ;
+    rdfs:comment "Año consolidado: el del MSD o, si vale 0, el de MusicBrainz."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:gYear .
 
 sem:fuenteAnio a rdf:Property ;
     rdfs:label "fuente_anio"@es ;
+    rdfs:comment "De dónde salió el año: msd o musicbrainz."@es ;
     rdfs:domain sem:Cancion ;
     rdfs:range xsd:string .
 
@@ -97,16 +115,19 @@ sem:fuenteAnio a rdf:Property ;
 
 sem:recordingMbid a rdf:Property ;
     rdfs:label "recording_mbid"@es ;
+    rdfs:comment "Identificador de la grabación en MusicBrainz."@es ;
     rdfs:domain sem:Grabacion ;
     rdfs:range xsd:string .
 
 sem:metodoMatch a rdf:Property ;
     rdfs:label "metodo_match"@es ;
+    rdfs:comment "Cómo se encontró la grabación: exacto, sin_sufijo o fuzzy."@es ;
     rdfs:domain sem:Grabacion ;
     rdfs:range xsd:string .
 
 sem:tagsGrabacion a rdf:Property ;
     rdfs:label "tags_grabacion"@es ;
+    rdfs:comment "Etiquetas que la comunidad de MusicBrainz puso a la grabación."@es ;
     rdfs:domain sem:Grabacion ;
     rdfs:range xsd:string .
 
@@ -114,46 +135,55 @@ sem:tagsGrabacion a rdf:Property ;
 
 sem:nombre a rdf:Property ;
     rdfs:label "artist_name"@es ;
+    rdfs:comment "Nombre del artista."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:string .
 
 sem:artistMbid a rdf:Property ;
     rdfs:label "artist_mbid"@es ;
+    rdfs:comment "Identificador del artista en MusicBrainz."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:string .
 
 sem:tipoArtista a rdf:Property ;
     rdfs:label "artista_tipo"@es ;
+    rdfs:comment "Tipo de artista: Person, Group, Orchestra, Choir..."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:string .
 
 sem:genero a rdf:Property ;
     rdfs:label "artista_genero"@es ;
+    rdfs:comment "Sexo del artista si es persona (Male, Female...). No es el género musical."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:string .
 
 sem:area a rdf:Property ;
     rdfs:label "artista_area"@es ;
+    rdfs:comment "País o zona de origen del artista."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:string .
 
 sem:anioInicio a rdf:Property ;
     rdfs:label "artista_anio_inicio"@es ;
+    rdfs:comment "Año de nacimiento o de formación del grupo."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:gYear .
 
 sem:anioFin a rdf:Property ;
     rdfs:label "artista_anio_fin"@es ;
+    rdfs:comment "Año de muerte o de disolución del grupo."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:gYear .
 
 sem:tagsArtista a rdf:Property ;
     rdfs:label "artista_tags"@es ;
+    rdfs:comment "Etiquetas del artista en MusicBrainz (incluyen géneros musicales)."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range xsd:string .
 
 sem:wikidata a rdf:Property ;
     rdfs:label "artista_wikidata"@es ;
+    rdfs:comment "Enlace a la ficha del artista en Wikidata."@es ;
     rdfs:domain sem:Artista ;
     rdfs:range rdfs:Resource .
 
@@ -161,26 +191,31 @@ sem:wikidata a rdf:Property ;
 
 sem:releaseMbid a rdf:Property ;
     rdfs:label "release_mbid"@es ;
+    rdfs:comment "Identificador del lanzamiento en MusicBrainz."@es ;
     rdfs:domain sem:Lanzamiento ;
     rdfs:range xsd:string .
 
 sem:tituloLanzamiento a rdf:Property ;
     rdfs:label "release_titulo"@es ;
+    rdfs:comment "Título del disco según MusicBrainz."@es ;
     rdfs:domain sem:Lanzamiento ;
     rdfs:range xsd:string .
 
 sem:pais a rdf:Property ;
     rdfs:label "release_pais"@es ;
+    rdfs:comment "País donde se publicó el lanzamiento."@es ;
     rdfs:domain sem:Lanzamiento ;
     rdfs:range xsd:string .
 
 sem:tipoLanzamiento a rdf:Property ;
     rdfs:label "release_tipo"@es ;
+    rdfs:comment "Tipo de disco: Album, Single, EP..."@es ;
     rdfs:domain sem:Lanzamiento ;
     rdfs:range xsd:string .
 
 sem:nombreSello a rdf:Property ;
     rdfs:label "sellos"@es ;
+    rdfs:comment "Nombre del sello o sellos del lanzamiento."@es ;
     rdfs:domain sem:Sello ;
     rdfs:range xsd:string .
 
@@ -188,70 +223,84 @@ sem:nombreSello a rdf:Property ;
 
 sem:averageLoudness a rdf:Property ;
     rdfs:label "average_loudness"@es ;
+    rdfs:comment "Volumen medio del audio, de 0 a 1."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:float .
 
 sem:dynamicComplexity a rdf:Property ;
     rdfs:label "dynamic_complexity"@es ;
+    rdfs:comment "Cuánto varía el volumen a lo largo de la pista."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:float .
 
 sem:mfccZeroMean a rdf:Property ;
     rdfs:label "mfcc_zero_mean"@es ;
+    rdfs:comment "Media del primer coeficiente MFCC, relacionado con la energía del sonido."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:float .
 
 sem:bpm a rdf:Property ;
     rdfs:label "bpm"@es ;
+    rdfs:comment "Tempo en pulsos por minuto."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:float .
 
 sem:bpmPrimerPicoMedia a rdf:Property ;
     rdfs:label "bpm_histogram_first_peak_bpm_mean"@es ;
+    rdfs:comment "Media del tempo más frecuente en el histograma de BPM."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:float .
 
 sem:bpmPrimerPicoMediana a rdf:Property ;
     rdfs:label "bpm_histogram_first_peak_bpm_median"@es ;
+    rdfs:comment "Mediana del tempo más frecuente en el histograma de BPM."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:float .
 
 sem:bpmSegundoPicoMedia a rdf:Property ;
     rdfs:label "bpm_histogram_second_peak_bpm_mean"@es ;
+    rdfs:comment "Media del segundo tempo más frecuente."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:float .
 
 sem:bpmSegundoPicoMediana a rdf:Property ;
     rdfs:label "bpm_histogram_second_peak_bpm_median"@es ;
+    rdfs:comment "Mediana del segundo tempo más frecuente."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:float .
 
 sem:danceability a rdf:Property ;
     rdfs:label "danceability"@es ;
+    rdfs:comment "Qué tan bailable es la pista; más alto, más bailable."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:float .
 
 sem:onsetRate a rdf:Property ;
     rdfs:label "onset_rate"@es ;
+    rdfs:comment "Notas o golpes que empiezan por segundo."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:float .
 
 sem:tonalidad a rdf:Property ;
     rdfs:label "key_key"@es ;
+    rdfs:comment "Nota de la tonalidad: C, F#..."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:string .
 
 sem:modo a rdf:Property ;
     rdfs:label "key_scale"@es ;
+    rdfs:comment "Modo de la tonalidad: major o minor."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:string .
 
 sem:frecuenciaAfinacion a rdf:Property ;
     rdfs:label "tuning_frequency"@es ;
+    rdfs:comment "Frecuencia de referencia de la afinación en Hz, normalmente cerca de 440."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:float .
 
 sem:desviacionTemperada a rdf:Property ;
     rdfs:label "tuning_equal_tempered_deviation"@es ;
+    rdfs:comment "Cuánto se aparta la afinación del temperamento igual."@es ;
     rdfs:domain sem:FeaturesAcusticas ;
     rdfs:range xsd:float .
