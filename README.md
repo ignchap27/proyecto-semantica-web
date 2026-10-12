@@ -211,7 +211,7 @@ make 08           # data/processed/ontology.ttl
 make 09           # data/processed/instances.ttl (+ .gz) y artist_relations.csv (~1 min)
 make 10           # valida: parsea, cuenta y pasa el razonador; termina en CONSISTENTE (~3 min)
 make fuseki       # levanta Fuseki en http://localhost:3030 (admin / admin)
-make 11           # carga ontología + instancias en el dataset musica: 2526621 triples (~1,5 min)
+make 11           # carga ontología + instancias en el dataset musica: 2526679 triples (~1,5 min)
 make 12           # corre queries/cqN.rq y guarda docs/resultados/cqN.csv
 make fuseki-down  # para Fuseki
 ```
