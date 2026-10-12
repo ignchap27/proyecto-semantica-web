@@ -216,10 +216,6 @@ make 12           # corre queries/cqN.rq y guarda docs/resultados/cqN.csv
 make fuseki-down  # para Fuseki
 ```
 
-- Si solo tienes el `.gz`: `gunzip -k data/processed/instances.ttl.gz`.
-- `configuracion.py` tiene el dataset y las URL de Fuseki. Para otro servidor:
-  `FUSEKI_URL=http://host:3030` y `FUSEKI_ADMIN=usuario:clave`.
-
 ## Borrar cosas
 
 `make clean` borra solo contenedores parados; los datos están en un volumen aparte y no
