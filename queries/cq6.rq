@@ -1,0 +1,13 @@
+PREFIX sem: <http://semantica-web.misis/grupo5/modelo#>
+PREFIX genero: <http://semantica-web.misis/grupo5/genero/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+# CQ6 (agregacion): tempo y bailabilidad medios por genero, los 10 con mas canciones
+SELECT ?genero (COUNT(DISTINCT ?c) AS ?canciones)
+       (ROUND(AVG(?bpm) * 100) / 100 AS ?bpmMedio)
+       (ROUND(AVG(?d) * 100) / 100 AS ?bailabilidad)
+WHERE {
+  ?c sem:interpretadaPor/sem:tieneGenero/sem:nombre ?genero ;
+     sem:correspondeA/sem:descritaPor ?f .
+  ?f sem:bpm ?bpm ; sem:danceability ?d .
+} GROUP BY ?genero ORDER BY DESC(?canciones) LIMIT 10

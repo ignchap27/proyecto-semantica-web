@@ -1,0 +1,9 @@
+PREFIX sem: <http://semantica-web.misis/grupo5/modelo#>
+PREFIX genero: <http://semantica-web.misis/grupo5/genero/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+# CQ3 (navegacion): artistas del dataset que son miembros de un grupo del dataset
+SELECT ?miembro ?grupo WHERE {
+  ?m sem:miembroDe ?g .
+  ?m sem:nombre ?miembro . ?g sem:nombre ?grupo .
+} ORDER BY ?grupo ?miembro

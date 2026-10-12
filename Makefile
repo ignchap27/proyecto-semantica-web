@@ -7,7 +7,7 @@
 # los pasos salen de scripts/, asi que un script nuevo aparece solo
 STEPS := $(shell ls scripts/[0-9][0-9]_*.py 2>/dev/null | sed 's|.*/\([0-9][0-9]\)_.*|\1|')
 
-.PHONY: all build check shell clean nuke cq $(STEPS)
+.PHONY: all build check shell clean nuke fuseki fuseki-down $(STEPS)
 .NOTPARALLEL:   # los pasos dependen del anterior; nunca en paralelo
 
 all: $(STEPS)
@@ -24,10 +24,13 @@ $(STEPS):
 	@docker logs -f etl_$@
 	@code=$$(docker wait etl_$@); echo "--- etl_$@ salio con codigo $$code"; exit $$code
 
-# respuestas esperadas de las competency questions (fase G); no es un paso del ETL
-cq:
-	@docker rm etl_cq >/dev/null 2>&1 || true
-	@docker compose run --name etl_cq etl python scripts/cq_esperadas.py
+# Fuseki en segundo plano en http://localhost:3030 (usuario admin / admin). Los pasos
+# 11 y 12 hablan con el; sus datos viven en el volumen `fuseki`
+fuseki:
+	docker compose up -d fuseki
+
+fuseki-down:
+	docker compose stop fuseki
 
 logs-%:
 	@docker logs -f etl_$*

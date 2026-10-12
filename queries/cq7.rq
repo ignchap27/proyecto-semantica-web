@@ -1,0 +1,10 @@
+PREFIX sem: <http://semantica-web.misis/grupo5/modelo#>
+PREFIX genero: <http://semantica-web.misis/grupo5/genero/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+# CQ7 (agregacion sobre la jerarquia): canciones por decada y tipo de artista
+SELECT ?decada ?tipo (COUNT(?c) AS ?canciones) WHERE {
+  ?c sem:anio ?anio ; sem:interpretadaPor ?a .
+  ?a a ?clase . ?clase rdfs:subClassOf* sem:Artista ; rdfs:label ?tipo .
+  BIND (xsd:integer(SUBSTR(STR(?anio), 1, 3)) * 10 AS ?decada)
+} GROUP BY ?decada ?tipo ORDER BY ?decada ?tipo

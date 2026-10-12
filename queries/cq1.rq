@@ -1,0 +1,12 @@
+PREFIX sem: <http://semantica-web.misis/grupo5/modelo#>
+PREFIX genero: <http://semantica-web.misis/grupo5/genero/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+# CQ1 (recuperacion): canciones de artistas de rock editadas por Columbia entre 1970 y 1979
+SELECT DISTINCT ?c ?titulo ?artista ?anio WHERE {
+  ?c a sem:Cancion ; sem:titulo ?titulo ; sem:anio ?anio ;
+     sem:interpretadaPor ?a ;
+     sem:correspondeA/sem:publicadaEn/sem:editadoPor/sem:nombre "Columbia" .
+  ?a sem:tieneGenero genero:rock ; sem:nombre ?artista .
+  FILTER (xsd:integer(STR(?anio)) >= 1970 && xsd:integer(STR(?anio)) <= 1979)
+} ORDER BY ?anio ?titulo

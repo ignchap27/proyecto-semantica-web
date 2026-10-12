@@ -92,10 +92,8 @@ MB_DERIVED_TABLES = [
     "release_group_tag",
 ]
 
-# --- etapa 2: parametros de las competency questions (fase G) ---
-CQ_SELLO = "Columbia"
-CQ_GENERO = "rock"
-CQ_ANIOS = (1970, 1979)
-CQ_BPM_MIN = 140
-CQ_TOP = 10
-CQ_GRUPO = "Deep Purple"  # origen de la navegacion por miembros compartidos (CQ4, CQ5)
+# --- etapa 2: ontologia e instancias (fases H-J) ---
+BASE = "http://semantica-web.misis/grupo5/"  # IRI de las instancias: BASE + "cancion/<track_id>"...
+ONT = BASE + "modelo#"                        # vocabulario (mismo sem: de la etapa 1)
+RDF_DIR = PROCESSED                           # ontology.ttl e instances.ttl
+MUESTRA_RAZONADOR = 1000                      # canciones que se pasan por owlrl en la fase J

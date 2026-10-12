@@ -1,0 +1,286 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sem: <http://semantica-web.misis/grupo5/modelo#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://semantica-web.misis/grupo5/modelo> a owl:Ontology ;
+    rdfs:label "Explorador musical del MSD (grupo 5)"@es .
+
+sem:Coro a owl:Class ;
+    rdfs:label "Coro"@es ;
+    rdfs:subClassOf sem:Grupo .
+
+sem:GrabacionAnalizada a owl:Class ;
+    rdfs:label "Grabación analizada"@es ;
+    rdfs:subClassOf sem:Grabacion ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:intersectionOf ( sem:Grabacion [ a owl:Restriction ;
+                        owl:onProperty sem:descritaPor ;
+                        owl:someValuesFrom sem:FeaturesAcusticas ] ) ] .
+
+sem:Orquesta a owl:Class ;
+    rdfs:label "Orquesta"@es ;
+    rdfs:subClassOf sem:Grupo .
+
+sem:Persona a owl:Class ;
+    rdfs:label "Persona"@es ;
+    rdfs:subClassOf sem:Artista ;
+    owl:disjointWith sem:Grupo .
+
+sem:Personaje a owl:Class ;
+    rdfs:label "Personaje"@es ;
+    rdfs:subClassOf sem:Artista .
+
+sem:anio a owl:DatatypeProperty ;
+    rdfs:label "anio"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:gYear .
+
+sem:anioFin a owl:DatatypeProperty ;
+    rdfs:label "artista_anio_fin"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:gYear .
+
+sem:anioInicio a owl:DatatypeProperty ;
+    rdfs:label "artista_anio_inicio"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:gYear .
+
+sem:area a owl:DatatypeProperty ;
+    rdfs:label "artista_area"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:string .
+
+sem:artistMbid a owl:DatatypeProperty,
+        owl:InverseFunctionalProperty ;
+    rdfs:label "mbid_canonico"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:string .
+
+sem:averageLoudness a owl:DatatypeProperty ;
+    rdfs:label "average_loudness"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:decimal .
+
+sem:bpm a owl:DatatypeProperty ;
+    rdfs:label "bpm"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:decimal .
+
+sem:bpmPrimerPicoMedia a owl:DatatypeProperty ;
+    rdfs:label "bpm_histogram_first_peak_bpm_mean"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:decimal .
+
+sem:bpmPrimerPicoMediana a owl:DatatypeProperty ;
+    rdfs:label "bpm_histogram_first_peak_bpm_median"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:decimal .
+
+sem:bpmSegundoPicoMedia a owl:DatatypeProperty ;
+    rdfs:label "bpm_histogram_second_peak_bpm_mean"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:decimal .
+
+sem:bpmSegundoPicoMediana a owl:DatatypeProperty ;
+    rdfs:label "bpm_histogram_second_peak_bpm_median"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:decimal .
+
+sem:correspondeA a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:label "se corresponde con"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range sem:Grabacion .
+
+sem:danceability a owl:DatatypeProperty ;
+    rdfs:label "danceability"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:decimal .
+
+sem:desviacionTemperada a owl:DatatypeProperty ;
+    rdfs:label "tuning_equal_tempered_deviation"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:decimal .
+
+sem:duracion a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:label "duration (segundos)"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:decimal .
+
+sem:duracionMs a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:label "recording.length (milisegundos)"@es ;
+    rdfs:domain sem:Grabacion ;
+    rdfs:range xsd:decimal .
+
+sem:dynamicComplexity a owl:DatatypeProperty ;
+    rdfs:label "dynamic_complexity"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:decimal .
+
+sem:editadoPor a owl:ObjectProperty ;
+    rdfs:label "editado por"@es ;
+    rdfs:domain sem:Lanzamiento ;
+    rdfs:range sem:Sello .
+
+sem:frecuenciaAfinacion a owl:DatatypeProperty ;
+    rdfs:label "tuning_frequency"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:decimal .
+
+sem:fuenteAnio a owl:DatatypeProperty ;
+    rdfs:label "fuente_anio"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:string .
+
+sem:interpretadaPor a owl:ObjectProperty ;
+    rdfs:label "interpretada por"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range sem:Artista .
+
+sem:labelMbid a owl:DatatypeProperty ;
+    rdfs:label "label_mbid"@es ;
+    rdfs:domain sem:Sello ;
+    rdfs:range xsd:string .
+
+sem:mbidAntiguo a owl:DatatypeProperty ;
+    rdfs:label "artist_mbid (antes de resolver el redirect)"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:string .
+
+sem:metodoMatch a owl:DatatypeProperty ;
+    rdfs:label "metodo_match"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:string .
+
+sem:mfccZeroMean a owl:DatatypeProperty ;
+    rdfs:label "mfcc_zero_mean"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:decimal .
+
+sem:modo a owl:DatatypeProperty ;
+    rdfs:label "key_scale"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:string .
+
+sem:nombre a owl:DatatypeProperty ;
+    rdfs:label "nombre"@es ;
+    rdfs:range xsd:string .
+
+sem:onsetRate a owl:DatatypeProperty ;
+    rdfs:label "onset_rate"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:decimal .
+
+sem:pais a owl:DatatypeProperty ;
+    rdfs:label "release_pais"@es ;
+    rdfs:domain sem:Lanzamiento ;
+    rdfs:range xsd:string .
+
+sem:publicadaEn a owl:ObjectProperty ;
+    rdfs:label "publicada en"@es ;
+    rdfs:domain sem:Grabacion ;
+    rdfs:range sem:Lanzamiento .
+
+sem:recordingMbid a owl:DatatypeProperty,
+        owl:InverseFunctionalProperty ;
+    rdfs:label "recording_mbid"@es ;
+    rdfs:domain sem:Grabacion ;
+    rdfs:range xsd:string .
+
+sem:releaseMbid a owl:DatatypeProperty ;
+    rdfs:label "release_mbid"@es ;
+    rdfs:domain sem:Lanzamiento ;
+    rdfs:range xsd:string .
+
+sem:releaseMsd a owl:DatatypeProperty ;
+    rdfs:label "release"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:string .
+
+sem:sexo a owl:DatatypeProperty ;
+    rdfs:label "artista_genero"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range xsd:string .
+
+sem:tieneGenero a owl:ObjectProperty ;
+    rdfs:label "tiene género"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range sem:Genero .
+
+sem:tieneMiembro a owl:ObjectProperty ;
+    rdfs:label "tiene miembro"@es ;
+    rdfs:domain sem:Grupo ;
+    rdfs:range sem:Artista ;
+    owl:inverseOf sem:miembroDe .
+
+sem:tipoLanzamiento a owl:DatatypeProperty ;
+    rdfs:label "release_tipo"@es ;
+    rdfs:domain sem:Lanzamiento ;
+    rdfs:range xsd:string .
+
+sem:titulo a owl:DatatypeProperty ;
+    rdfs:label "title"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:string .
+
+sem:tituloLanzamiento a owl:DatatypeProperty ;
+    rdfs:label "release_titulo"@es ;
+    rdfs:domain sem:Lanzamiento ;
+    rdfs:range xsd:string .
+
+sem:tonalidad a owl:DatatypeProperty ;
+    rdfs:label "key_key"@es ;
+    rdfs:domain sem:FeaturesAcusticas ;
+    rdfs:range xsd:string .
+
+sem:trackId a owl:DatatypeProperty ;
+    rdfs:label "track_id"@es ;
+    rdfs:domain sem:Cancion ;
+    rdfs:range xsd:string .
+
+sem:wikidata a owl:ObjectProperty ;
+    rdfs:label "artista_wikidata"@es ;
+    rdfs:domain sem:Artista .
+
+sem:descritaPor a owl:ObjectProperty ;
+    rdfs:label "descrita por"@es ;
+    rdfs:domain sem:Grabacion ;
+    rdfs:range sem:FeaturesAcusticas .
+
+sem:miembroDe a owl:ObjectProperty ;
+    rdfs:label "miembro de"@es ;
+    rdfs:domain sem:Artista ;
+    rdfs:range sem:Grupo .
+
+sem:Genero a owl:Class ;
+    rdfs:label "Género"@es .
+
+sem:Sello a owl:Class ;
+    rdfs:label "Sello"@es .
+
+sem:Grupo a owl:Class ;
+    rdfs:label "Grupo"@es ;
+    rdfs:subClassOf sem:Artista .
+
+sem:Lanzamiento a owl:Class ;
+    rdfs:label "Lanzamiento"@es .
+
+sem:Grabacion a owl:Class ;
+    rdfs:label "Grabación"@es .
+
+sem:Cancion a owl:Class ;
+    rdfs:label "Canción"@es .
+
+sem:Artista a owl:Class ;
+    rdfs:label "Artista"@es .
+
+sem:FeaturesAcusticas a owl:Class ;
+    rdfs:label "Features acústicas"@es .
+
+[] a owl:AllDisjointClasses ;
+    owl:members ( sem:Cancion sem:Grabacion sem:Lanzamiento sem:Sello sem:Artista sem:Genero sem:FeaturesAcusticas ) .
+

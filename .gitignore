@@ -219,3 +219,6 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 docs/prompt_etapa2.md
+
+# 195 MB, pasa del limite de GitHub: se versiona instances.ttl.gz
+data/processed/instances.ttl

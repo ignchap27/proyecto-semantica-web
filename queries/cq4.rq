@@ -1,0 +1,12 @@
+PREFIX sem: <http://semantica-web.misis/grupo5/modelo#>
+PREFIX genero: <http://semantica-web.misis/grupo5/genero/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+# CQ4 (navegacion transitiva): grupos conectados con Deep Purple porque comparten
+# miembros, directa o indirectamente
+SELECT DISTINCT ?otro ?grupo WHERE {
+  ?dp a sem:Grupo ; sem:nombre "Deep Purple" .
+  ?dp (^sem:miembroDe/sem:miembroDe)+ ?otro .
+  ?otro sem:nombre ?grupo .
+  FILTER (?otro != ?dp)
+} ORDER BY ?grupo

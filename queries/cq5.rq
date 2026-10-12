@@ -1,0 +1,10 @@
+PREFIX sem: <http://semantica-web.misis/grupo5/modelo#>
+PREFIX genero: <http://semantica-web.misis/grupo5/genero/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+# CQ5 (navegacion): sellos con los que ha publicado Deep Purple
+# cancion -> grabacion -> lanzamiento -> sello
+SELECT ?sello (COUNT(DISTINCT ?c) AS ?canciones) WHERE {
+  ?c sem:interpretadaPor/sem:nombre "Deep Purple" ;
+     sem:correspondeA/sem:publicadaEn/sem:editadoPor/sem:nombre ?sello .
+} GROUP BY ?sello ORDER BY DESC(?canciones) ?sello

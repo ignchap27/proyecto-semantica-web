@@ -1,0 +1,14 @@
+PREFIX sem: <http://semantica-web.misis/grupo5/modelo#>
+PREFIX genero: <http://semantica-web.misis/grupo5/genero/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+# CQ8 (agregacion): los 10 sellos con mas canciones y su % en modo mayor
+SELECT ?sello (COUNT(?c) AS ?canciones) (COUNT(?modo) AS ?conModo)
+       (ROUND(1000 * SUM(IF(COALESCE(?modo, "") = "major", 1, 0)) / COUNT(?modo)) / 10 AS ?pctMayor)
+WHERE {
+  # DISTINCT: varios sellos de MB comparten nombre y no deben contar doble
+  { SELECT DISTINCT ?c ?sello ?modo WHERE {
+      ?c sem:correspondeA/sem:publicadaEn/sem:editadoPor/sem:nombre ?sello .
+      OPTIONAL { ?c sem:correspondeA/sem:descritaPor/sem:modo ?modo }
+  } }
+} GROUP BY ?sello ORDER BY DESC(?canciones) LIMIT 10

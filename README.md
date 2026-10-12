@@ -40,7 +40,7 @@ fácil equivocarse. Con el Makefile nadie tiene que escribir Docker a mano.
 | `make 00`, `make 01`, … | corre un paso del ETL y muestra su salida en vivo |
 | `make all` | corre todos los pasos que existan, en orden |
 | `make logs-00` | vuelve a mostrar los logs de un paso que ya corrió |
-| `make cq` | calcula las respuestas esperadas de las competency questions (Etapa 2, fase G) |
+| `make fuseki` / `make fuseki-down` | levanta / para el servidor SPARQL Fuseki (Etapa 2) |
 | `make shell` | abre un bash dentro del contenedor, para mirar `/data` |
 | `make build` | construye la imagen de Docker (opcional: los demás comandos la construyen solos) |
 | `make clean` | borra los contenedores parados de este proyecto; **no borra datos** |
@@ -202,30 +202,23 @@ porque es análisis del resultado, no parte del ETL.
 
 ## Etapa 2: de los CSV a la ontología
 
-La Etapa 2 convierte los CSV de arriba en una ontología (el vocabulario: qué clases y
-relaciones existen) y en instancias (los datos concretos), y los carga en Apache Jena
-Fuseki para consultarlos con SPARQL. Parte de `data/processed/` y de la DuckDB que ya
-está en el volumen; no descarga nada.
-
-### Fase G — Competency questions y revisión del modelo
-
-Una *competency question* (CQ) es una pregunta que la ontología tiene que saber
-responder. Se escriben antes del modelo para revisarlo: si una pregunta no se puede
-contestar con el modelo, al modelo le falta algo.
+Convierte los CSV de `data/processed/` en `ontology.ttl` (vocabulario) e `instances.ttl`
+(datos), y los consulta con SPARQL en Apache Jena Fuseki.
 
 ```bash
-make cq     # calcula la respuesta esperada de las 8 CQ (~3 s)
+make build        # una vez: añade rdflib y owlrl a la imagen
+make 08           # data/processed/ontology.ttl
+make 09           # data/processed/instances.ttl (+ .gz) y artist_relations.csv (~1 min)
+make 10           # valida: parsea, cuenta y pasa el razonador; termina en CONSISTENTE (~3 min)
+make fuseki       # levanta Fuseki en http://localhost:3030 (admin / admin)
+make 11           # carga ontología + instancias en el dataset musica: 2526621 triples (~1,5 min)
+make 12           # corre queries/cqN.rq y guarda docs/resultados/cqN.csv
+make fuseki-down  # para Fuseki
 ```
 
-Lee los CSV de `data/processed/` y, de la DuckDB, las relaciones entre artistas
-(`l_artist_artist`) y el vocabulario de géneros de MusicBrainz. Imprime una respuesta por
-CQ. Los parámetros de las preguntas (sello, género, años, grupo de partida) están en
-`const.py`. No es un paso del ETL, por eso no lleva número y `make all` no lo corre.
-
-Tiene que imprimir, entre otras cosas, `79 canciones` en la CQ1, `2849 canciones` en la
-CQ2 y `219 grupos; directos: 13` en la CQ4. Las 8 preguntas, sus respuestas, el SPARQL
-borrador y la revisión del modelo de la Etapa 1 (qué tiene, qué falta, qué sobra) están
-en `docs/competency_questions.md`.
+- Si solo tienes el `.gz`: `gunzip -k data/processed/instances.ttl.gz`.
+- `configuracion.py` tiene el dataset y las URL de Fuseki. Para otro servidor:
+  `FUSEKI_URL=http://host:3030` y `FUSEKI_ADMIN=usuario:clave`.
 
 ## Borrar cosas
 
@@ -246,19 +239,20 @@ sobreviven siempre.
 .
 ├── Makefile                # los comandos de arriba
 ├── Dockerfile              # python:3.12-slim + curl, lbzip2, zstd
-├── docker-compose.yml      # un servicio (etl) + volumen `work` para los datos pesados
-├── requirements.txt        # duckdb, pandas, rapidfuzz, unidecode
+├── docker-compose.yml      # servicios etl y fuseki, volúmenes `work` y `fuseki`
+├── requirements.txt        # duckdb, pandas, rapidfuzz, unidecode, rdflib, owlrl
 ├── CLAUDE.md               # instrucciones para el agente (Etapas 1 y 2)
-├── const.py                # rutas, URLs, listas de tablas y parámetros de las CQ
+├── const.py                # rutas, URLs, listas de tablas y base de las IRI
+├── configuracion.py        # dataset y endpoints de Fuseki (Etapa 2)
 ├── data/
 │   ├── grupo_5.csv         # entrada (no se toca)
-│   └── processed/          # CSVs finales
+│   └── processed/          # CSVs finales, ontology.ttl e instances.ttl
 ├── docs/
-│   ├── Informe_ichaparro.docx  # informe de la Etapa 1
-│   ├── modelo_conceptual.ttl   # el modelo de la Etapa 1, en RDFS
-│   ├── bitacora.md         # qué se hizo, qué falló y los números medidos (Etapa 2)
-│   ├── competency_questions.md  # las 8 CQ, respuestas esperadas y revisión del modelo
-│   └── informe_etapa2.md   # el entregable de 6 páginas, se escribe fase a fase
+│   ├── Informe_ichaparro.docx         # informe de la Etapa 1
+│   ├── Informe_Etapa2_ichaparro.docx  # informe de la Etapa 2
+│   ├── modelo_conceptual.ttl          # el modelo de la Etapa 1, en RDFS
+│   └── resultados/                    # resultado real de cada CQ en Fuseki (cqN.csv)
+├── queries/                # cq1.rq … cq8.rq, el SPARQL de las CQ
 ├── notebooks/
 │   └── analisis_completitud.ipynb  # completitud de songs_final.csv, se corre local
 └── scripts/                # un script por paso, sin frameworks
@@ -270,7 +264,11 @@ sobreviven siempre.
     ├── 05_enrich.py
     ├── 06_acousticbrainz.py
     ├── 07_export.py
-    ├── cq_esperadas.py     # respuestas esperadas de las CQ (make cq)
+    ├── 08_ontology.py      # ontology.ttl (Etapa 2)
+    ├── 09_instances.py     # instances.ttl y artist_relations.csv
+    ├── 10_validate.py      # parseo, conteos y razonador
+    ├── 11_load.py          # carga en Fuseki
+    ├── 12_queries.py       # corre las CQ contra Fuseki
     ├── test_match.py       # checks de la fase D, se corre dentro de make shell
     └── test_export.py      # checks de la fase F, ídem
 ```

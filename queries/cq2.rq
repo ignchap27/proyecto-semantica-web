@@ -1,0 +1,12 @@
+PREFIX sem: <http://semantica-web.misis/grupo5/modelo#>
+PREFIX genero: <http://semantica-web.misis/grupo5/genero/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+# CQ2 (recuperacion + jerarquia): canciones en modo menor y > 140 bpm de grupos,
+# incluidas orquestas y coros (subclases de Grupo)
+SELECT (COUNT(DISTINCT ?c) AS ?canciones) WHERE {
+  ?c sem:interpretadaPor ?a ; sem:correspondeA/sem:descritaPor ?f .
+  ?a a/rdfs:subClassOf* sem:Grupo .
+  ?f sem:modo "minor" ; sem:bpm ?bpm .
+  FILTER (?bpm > 140)
+}
