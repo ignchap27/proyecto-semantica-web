@@ -91,3 +91,11 @@ MB_DERIVED_TABLES = [
     "recording_tag",
     "release_group_tag",
 ]
+
+# --- etapa 2: parametros de las competency questions (fase G) ---
+CQ_SELLO = "Columbia"
+CQ_GENERO = "rock"
+CQ_ANIOS = (1970, 1979)
+CQ_BPM_MIN = 140
+CQ_TOP = 10
+CQ_GRUPO = "Deep Purple"  # origen de la navegacion por miembros compartidos (CQ4, CQ5)

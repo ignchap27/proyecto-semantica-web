@@ -7,7 +7,7 @@
 # los pasos salen de scripts/, asi que un script nuevo aparece solo
 STEPS := $(shell ls scripts/[0-9][0-9]_*.py 2>/dev/null | sed 's|.*/\([0-9][0-9]\)_.*|\1|')
 
-.PHONY: all build check shell clean nuke $(STEPS)
+.PHONY: all build check shell clean nuke cq $(STEPS)
 .NOTPARALLEL:   # los pasos dependen del anterior; nunca en paralelo
 
 all: $(STEPS)
@@ -23,6 +23,11 @@ $(STEPS):
 	@docker compose run -d --name etl_$@ etl python scripts/$@_*.py >/dev/null
 	@docker logs -f etl_$@
 	@code=$$(docker wait etl_$@); echo "--- etl_$@ salio con codigo $$code"; exit $$code
+
+# respuestas esperadas de las competency questions (fase G); no es un paso del ETL
+cq:
+	@docker rm etl_cq >/dev/null 2>&1 || true
+	@docker compose run --name etl_cq etl python scripts/cq_esperadas.py
 
 logs-%:
 	@docker logs -f etl_$*
